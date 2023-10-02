@@ -7,7 +7,7 @@ namespace server.Interfaces
     public interface IUserRepository
     {
         Task<User> Get(int id);
-        Task<IdentityResult> Add(RegistrationDTO registrationDTO);
+        Task<IdentityResult> Add(User user);
         void Update(User user);
         void Delete(User user);
     }

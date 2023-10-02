@@ -14,15 +14,9 @@ namespace server.Repository
             this.userManager = userManager; 
         }
 
-        public async Task<IdentityResult> Add(RegistrationDTO registrationDTO)
+        public async Task<IdentityResult> Add(User user)
         {
-            User user = new User {
-                FirstName = registrationDTO.FirstName,
-                LastName = registrationDTO.LastName,
-                Email = registrationDTO.Email,
-                UserName = registrationDTO.Username
-            };
-            var result = await userManager.CreateAsync(user, registrationDTO.Password);
+            var result = await userManager.CreateAsync(user, user.Password);
             return result;
         }
 
