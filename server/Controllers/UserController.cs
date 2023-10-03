@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using server.DTOs;
 using server.Interfaces;
 using server.Models;
+using server.Wrappers;
 using server.Services;
 
 namespace server.Controllers
@@ -14,11 +15,13 @@ namespace server.Controllers
     {
         private readonly UserManager<User> userManager;
         private readonly IAuthenticationService _authenticationService;
-
+        private readonly IValidationDictionary _modelStateWrapper;
+        
         public UserController(UserManager<User> userManager, IAuthenticationService authenticationService)
         {
             this.userManager = userManager;
             _authenticationService = authenticationService;
+            _modelStateWrapper = new ModelStateWrapper(this.ModelState);
         }
 
         [HttpPost]
@@ -29,10 +32,10 @@ namespace server.Controllers
         }
 
         [HttpPost]
-        [Route("registraion")]
+        [Route("registration")]
         public async Task<IActionResult> Registration([FromBody] RegistrationDTO registrationDTO)
         {
-            return await _authenticationService.Register(registrationDTO);
+            return await _authenticationService.Register(registrationDTO, _modelStateWrapper);
         }
 
         [HttpGet]

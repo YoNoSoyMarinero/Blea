@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,7 @@ using server.Mappers;
 using server.Models;
 using server.Repository;
 using server.Services;
+using server.Wrappers;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);

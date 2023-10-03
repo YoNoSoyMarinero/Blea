@@ -6,6 +6,6 @@ namespace server.Interfaces
     public interface IAuthenticationService
     {
         public Task<IActionResult> Login (LoginDTO loginDTO);
-        public Task<IActionResult> Register (RegistrationDTO registrationDTO);
+        public Task<IActionResult> Register (RegistrationDTO registrationDTO, IValidationDictionary modelState);
     }
 }

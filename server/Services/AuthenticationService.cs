@@ -14,6 +14,7 @@ namespace server.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
+        private readonly IValidationDictionary _modelState;
 
         public AuthenticationService(IUserRepository userRepository, IMapper mapper)
         {
@@ -26,8 +27,13 @@ namespace server.Services
             throw new NotImplementedException();
         }
 
-        public async Task<IActionResult> Register(RegistrationDTO registrationDTO)
+        public async Task<IActionResult> Register(RegistrationDTO registrationDTO, IValidationDictionary modelState)
         {
+            if (!modelState.IsValid)
+            {
+                return new BadRequestResult();
+            }
+
             User user = _mapper.Map<User>(registrationDTO);
             await _userRepository.Add(user);
             return new OkResult();
