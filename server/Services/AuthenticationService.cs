@@ -14,6 +14,7 @@ using System;
 using server.Utilites;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Text;
+using Microsoft.AspNetCore.Mvc.Routing;
 
 namespace server.Services
 {
@@ -59,7 +60,7 @@ namespace server.Services
             }
         }
 
-        public async Task<IActionResult> Register(RegistrationDTO registrationDTO, IValidationDictionary modelState)
+        public async Task<IActionResult> Register(RegistrationDTO registrationDTO, IValidationDictionary modelState, IUrlGenerator urlGenerator)
         {
             if (!modelState.IsValid)
             {
@@ -79,11 +80,8 @@ namespace server.Services
             if (result.Succeeded)
             {
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
-                encodedToken = encodedToken.Replace('+', '-').Replace('/', '_');
-                string confirmationLink = $"https://localhost:44343/User/EmailVerification/{user.Id}/{token}";
-                MailData mailData = new MailData(new List<string> { user.Email }, "EmailVerification", confirmationLink);
-                _mailUtility.SendEmailAsync(mailData, new CancellationToken());
+                var callbackUrl = urlGenerator.GenerateVerificationLink("ConfirmEmail", token, user.Email);
+                System.Console.WriteLine(callbackUrl);
             }
 
             return new OkResult();
