@@ -38,6 +38,13 @@ namespace server.Controllers
             return await _authenticationService.Register(registrationDTO, _modelStateWrapper);
         }
 
+        [HttpPost]
+        [Route("EmailConfirmation/{userId}/{code}", Name = "EmailConfirmation")]
+        public async Task<IActionResult> EmailConfimration(string userId, string code)
+        {
+            return await _authenticationService.ConfirmEmail(userId, code);
+        }
+
         [HttpGet]
         [Route("get/{id}")]
         public async Task<IActionResult> GetUser(string id)

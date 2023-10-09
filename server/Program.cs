@@ -1,13 +1,16 @@
 using AutoMapper;
+using server.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using server.Interfaces;
 using server.Mappers;
 using server.Models;
 using server.Repository;
 using server.Services;
+using server.Utilites;
 using server.Wrappers;
 using System.Text;
 
@@ -19,6 +22,9 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.Configure<MailSettings>(builder.Configuration.GetSection(nameof(MailSettings)));
+builder.Services.AddTransient<IMailUtility, MailUtility>();
 
 builder.Services.AddCors(options =>
 {
@@ -35,7 +41,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddIdentity<User, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
-    .AddDefaultTokenProviders();
+.AddDefaultTokenProviders();
+
 
 
 builder.Services.AddAuthentication(options =>

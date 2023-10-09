@@ -25,9 +25,14 @@ namespace server.Repository
             throw new NotImplementedException();
         }
 
-        public async Task<User> Get(int id)
+        public async Task<User> GetById(int id)
         {
             return await userManager.FindByIdAsync(id.ToString());
+        }
+
+        public async Task<bool> EmailExists(string email)
+        {
+            return await userManager.FindByEmailAsync(email) != null;
         }
 
         public void Update(User user)
