@@ -2,6 +2,6 @@
 {
     public interface IUrlGenerator
     {
-        public string GenerateVerificationLink(string action, string token, string email);
+        public string GenerateVerificationLink(string token, string email);
     }
 }

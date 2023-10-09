@@ -80,7 +80,7 @@ namespace server.Services
             if (result.Succeeded)
             {
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                var callbackUrl = urlGenerator.GenerateVerificationLink("ConfirmEmail", token, user.Email);
+                var callbackUrl = urlGenerator.GenerateVerificationLink(token, user.Email);
                 System.Console.WriteLine(callbackUrl);
             }
 

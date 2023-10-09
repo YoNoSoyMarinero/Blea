@@ -17,9 +17,9 @@ namespace server.Wrappers
             _httpContext = httpContext;
             _controller = controller;
         }
-        public string GenerateVerificationLink(string action, string token, string email)
+        public string GenerateVerificationLink(string token, string email)
         {
-            return _urlGenerator.Action(action, _controller, new { token, email = email }, _httpContext.Request.Scheme);
+            return _urlGenerator.Action("ConfirmEmail", _controller, new { token, email = email }, _httpContext.Request.Scheme);
         }
     }
 }
