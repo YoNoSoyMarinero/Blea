@@ -6,6 +6,7 @@ using server.Interfaces;
 using server.Models;
 using server.Wrappers;
 using server.Services;
+using Microsoft.AspNetCore.Mvc.Routing;
 
 namespace server.Controllers
 {
@@ -16,12 +17,14 @@ namespace server.Controllers
         private readonly UserManager<User> userManager;
         private readonly IAuthenticationService _authenticationService;
         private readonly IValidationDictionary _modelStateWrapper;
+        private readonly IUrlGenerator _urlGenerator;
         
         public UserController(UserManager<User> userManager, IAuthenticationService authenticationService)
         {
             this.userManager = userManager;
             _authenticationService = authenticationService;
             _modelStateWrapper = new ModelStateWrapper(this.ModelState);
+            _urlGenerator = new UrlHelperWrapper(Url, HttpContext, "User");
         }
 
         [HttpPost]
@@ -35,7 +38,7 @@ namespace server.Controllers
         [Route("registration")]
         public async Task<IActionResult> Registration([FromBody] RegistrationDTO registrationDTO)
         {
-            return await _authenticationService.Register(registrationDTO, _modelStateWrapper);
+            return await _authenticationService.Register(registrationDTO, _modelStateWrapper, _urlGenerator);
         }
 
         [HttpPost]

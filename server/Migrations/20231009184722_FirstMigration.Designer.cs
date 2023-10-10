@@ -12,8 +12,8 @@ using server.Models;
 namespace server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20231002151637_InitialMigration")]
-    partial class InitialMigration
+    [Migration("20231009184722_FirstMigration")]
+    partial class FirstMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -169,8 +169,7 @@ namespace server.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("DateOfBirth")
-                        .IsRequired()
+                    b.Property<DateTime>("DateOfBirth")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
