@@ -2,19 +2,12 @@
 using Microsoft.AspNetCore.Mvc;
 using server.DTOs;
 using server.Models;
-using server.Repository;
+using System;
+using System.Web;
 using server.Interfaces;
 using AutoMapper;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using System.ComponentModel.DataAnnotations;
-using Org.BouncyCastle.Asn1.Ocsp;
 using System.Security.Policy;
-using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
-using System;
 using server.Utilites;
-using Microsoft.AspNetCore.WebUtilities;
-using System.Text;
-using Microsoft.AspNetCore.Mvc.Routing;
 
 namespace server.Services
 {
@@ -24,13 +17,15 @@ namespace server.Services
         private readonly IMapper _mapper;
         private readonly IMailUtility _mailUtility;
         private readonly UserManager<User> _userManager;
+        private readonly ITokenEncoderUtility _tokenEncoderUtility;
 
-        public AuthenticationService(IUserRepository userRepository, IMapper mapper, IMailUtility mailUtility, UserManager<User> userManager)
+        public AuthenticationService(IUserRepository userRepository, IMapper mapper, IMailUtility mailUtility, UserManager<User> userManager, ITokenEncoderUtility tokenEncoderUtility)
         {
             _userRepository = userRepository;
             _mapper = mapper;
             _mailUtility = mailUtility;
             _userManager = userManager;
+            _tokenEncoderUtility = tokenEncoderUtility;
         }
 
         public Task<IActionResult> Login(LoginDTO loginDTO)
@@ -49,6 +44,7 @@ namespace server.Services
             {
                 return new BadRequestResult();
             }
+            code = _tokenEncoderUtility.DecodeToken(code);
             var result = await _userManager.ConfirmEmailAsync(user, code);
             if (result.Succeeded)
             {
@@ -60,7 +56,7 @@ namespace server.Services
             }
         }
 
-        public async Task<IActionResult> Register(RegistrationDTO registrationDTO, IValidationDictionary modelState, IUrlGenerator urlGenerator)
+        public async Task<IActionResult> Register(RegistrationDTO registrationDTO, IValidationDictionary modelState)
         {
             if (!modelState.IsValid)
             {
@@ -76,15 +72,34 @@ namespace server.Services
 
             User user = _mapper.Map<User>(registrationDTO);
             var result = await _userRepository.Add(user);
+            string token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            token = _tokenEncoderUtility.EncodeToken(token);
+            string url = $"https://localhost:44343/User/EmailConfirmation/{user.Id}/{token}";
 
             if (result.Succeeded)
             {
-                var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                var callbackUrl = urlGenerator.GenerateVerificationLink(token, user.Email);
-                System.Console.WriteLine(callbackUrl);
+                return await SendVerificationEmail(url, user.Email);
+            } else
+            {
+                return new BadRequestResult();
             }
+        }
 
-            return new OkResult();
+        public async Task<IActionResult> SendVerificationEmail(string url, string userEmail)
+        {
+            MailData mailData = new MailData(new List<string> { userEmail },
+                                             "Blea email verification",
+                                             $"Click this link to verify your email: {url}");
+            bool sent = await _mailUtility.SendEmailAsync(mailData, new CancellationToken());
+            if (sent)
+            {
+                return new OkResult();
+            }
+            else
+            {
+                return new BadRequestResult();
+            }
+            
         }
     }
 }

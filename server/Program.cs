@@ -69,6 +69,7 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAutoMapper(typeof(UserProfile));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ITokenEncoderUtility, TokenEncoderUtility>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 
 var app = builder.Build();

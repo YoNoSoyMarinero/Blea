@@ -7,24 +7,23 @@ using server.Models;
 using server.Wrappers;
 using server.Services;
 using Microsoft.AspNetCore.Mvc.Routing;
+using System.Web;
 
 namespace server.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class UserController : ControllerBase
     {
         private readonly UserManager<User> userManager;
         private readonly IAuthenticationService _authenticationService;
         private readonly IValidationDictionary _modelStateWrapper;
-        private readonly IUrlGenerator _urlGenerator;
         
         public UserController(UserManager<User> userManager, IAuthenticationService authenticationService)
         {
             this.userManager = userManager;
             _authenticationService = authenticationService;
             _modelStateWrapper = new ModelStateWrapper(this.ModelState);
-            _urlGenerator = new UrlHelperWrapper(Url, HttpContext, "User");
         }
 
         [HttpPost]
@@ -38,12 +37,12 @@ namespace server.Controllers
         [Route("registration")]
         public async Task<IActionResult> Registration([FromBody] RegistrationDTO registrationDTO)
         {
-            return await _authenticationService.Register(registrationDTO, _modelStateWrapper, _urlGenerator);
+            return await _authenticationService.Register(registrationDTO, _modelStateWrapper);
         }
 
         [HttpPost]
         [Route("EmailConfirmation/{userId}/{code}", Name = "EmailConfirmation")]
-        public async Task<IActionResult> EmailConfimration(string userId, string code)
+        public async Task<IActionResult> EmailConfirmation(string userId, string code)
         {
             return await _authenticationService.ConfirmEmail(userId, code);
         }
