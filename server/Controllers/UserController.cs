@@ -8,6 +8,7 @@ using server.Wrappers;
 using server.Services;
 using Microsoft.AspNetCore.Mvc.Routing;
 using System.Web;
+using System.ComponentModel.DataAnnotations;
 
 namespace server.Controllers
 {
@@ -41,9 +42,23 @@ namespace server.Controllers
 
         [HttpPost]
         [Route("confirm/{userId}/{token}")]
-        public async Task<IActionResult> ConfirmUser(string userId, string token)
+        public async Task<IActionResult> ConfirmUser([Required]string userId, [Required]string token)
         {
             return await _authenticationService.ConfirmUser(userId, token);
+        }
+
+        [HttpPost]
+        [Route("password-reset-request")]
+        public async Task<IActionResult> PasswordResetRequest([Required] string email)
+        {
+            return await _authenticationService.SendPasswordResetRequest(email, $"{Request.Scheme}://{Request.Host}");
+        }
+
+        [HttpPost]
+        [Route("password-reset-change")]
+        public async Task<IActionResult> PasswordResetChange([FromBody] ResetPasswordDTO passwordResetDTO)
+        {
+            return await _authenticationService.ResetUserPassword(passwordResetDTO);
         }
 
         [HttpGet]

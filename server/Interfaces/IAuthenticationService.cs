@@ -9,5 +9,7 @@ namespace server.Interfaces
         public Task<IActionResult> Login (LoginDTO loginDTO, IValidationDictionary modelState);
         public Task<IActionResult> Register (RegistrationDTO registrationDTO, IValidationDictionary modelState, String requestUrl);
         public Task<IActionResult> ConfirmUser(string userId, string token);
+        public Task<IActionResult> SendPasswordResetRequest(string email, string requestUrl);
+        public Task<IActionResult> ResetUserPassword(ResetPasswordDTO passwordResetDTO);
     }
 }

@@ -43,6 +43,16 @@ namespace server.Repository
         {
             return await userManager.GenerateEmailConfirmationTokenAsync(user);
         }
+
+        public async Task<string> GeneratePasswordResetToken(User user)
+        {
+            return await userManager.GeneratePasswordResetTokenAsync(user);
+        }
+
+        public async Task<IdentityResult> ResetUserPassword(User user, string token, string newPassword)
+        {
+            return await userManager.ResetPasswordAsync(user, token, newPassword);
+        }
         
         public async Task<IdentityResult> ConfirmUser(User user, string token)
         {
