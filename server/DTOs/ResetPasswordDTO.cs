@@ -8,6 +8,7 @@ namespace server.DTOs
         public string UserId { get; set; }
         [Required]
         public string Token { get; set; }
+
         [Required(ErrorMessage = "Password is required")]
         [StringLength(100, MinimumLength = 8, ErrorMessage = "Password must be at least 8 characters long")]
         [RegularExpression(@"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$",
