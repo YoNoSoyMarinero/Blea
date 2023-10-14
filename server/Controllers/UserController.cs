@@ -26,20 +26,25 @@ namespace server.Controllers
             _modelStateWrapper = new ModelStateWrapper(this.ModelState);
         }
 
+
+        //User login
         [HttpPost]
         [Route("login")]
-        public IActionResult Login([FromBody] LoginDTO loginDTO)
+        public async Task<IActionResult> Login([FromBody] LoginDTO loginDTO)
         {
             return Ok();
         }
 
+
+        //User registration
         [HttpPost]
-        [Route("registration")]
+        [Route("user/registration")]
         public async Task<IActionResult> Registration([FromBody] RegistrationDTO registrationDTO)
         {
             return await _authenticationService.Register(registrationDTO, _modelStateWrapper);
         }
 
+        //Sends confirmation link after registration
         [HttpPost]
         [Route("EmailConfirmation/{userId}/{code}", Name = "EmailConfirmation")]
         public async Task<IActionResult> EmailConfirmation(string userId, string code)

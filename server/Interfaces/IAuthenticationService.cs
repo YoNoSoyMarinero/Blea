@@ -9,7 +9,6 @@ namespace server.Interfaces
         public Task<IActionResult> Login (LoginDTO loginDTO);
         public Task<IActionResult> Register (RegistrationDTO registrationDTO, IValidationDictionary modelState);
         public Task<IActionResult> ConfirmEmail(string userId, string code);
-        public Task<IActionResult> SendVerificationEmail(string url, string userEmail);
 
     }
 }

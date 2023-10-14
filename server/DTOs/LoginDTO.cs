@@ -1,4 +1,6 @@
-﻿namespace server.DTOs
+﻿using System.Security.Policy;
+
+namespace server.DTOs
 {
     public class LoginDTO
     {

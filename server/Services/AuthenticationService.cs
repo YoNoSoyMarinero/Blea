@@ -60,14 +60,14 @@ namespace server.Services
         {
             if (!modelState.IsValid)
             {
-                return new BadRequestResult();
+                return new BadRequestObjectResult(new {message = modelState.GetErrors()});
             }
 
             bool emailExists = await _userRepository.EmailExists(registrationDTO.Email);
 
             if (emailExists)
             {
-                return new BadRequestResult();
+                return new BadRequestObjectResult(new { message = "That email already exists"});
             }
 
             User user = _mapper.Map<User>(registrationDTO);
@@ -78,28 +78,23 @@ namespace server.Services
 
             if (result.Succeeded)
             {
-                return await SendVerificationEmail(url, user.Email);
+                MailData mailData = new MailData(new List<string> { user.Email },
+                                                 "Blea email verification",
+                                                 $"Click this link to verify your email: {url}");
+                bool sent = await _mailUtility.SendEmailAsync(mailData, new CancellationToken());
+
+                if (sent)
+                {
+                    return new OkResult();
+                }
+                else
+                {
+                    return new BadRequestResult();
+                }
             } else
             {
                 return new BadRequestResult();
             }
-        }
-
-        public async Task<IActionResult> SendVerificationEmail(string url, string userEmail)
-        {
-            MailData mailData = new MailData(new List<string> { userEmail },
-                                             "Blea email verification",
-                                             $"Click this link to verify your email: {url}");
-            bool sent = await _mailUtility.SendEmailAsync(mailData, new CancellationToken());
-            if (sent)
-            {
-                return new OkResult();
-            }
-            else
-            {
-                return new BadRequestResult();
-            }
-            
         }
     }
 }
