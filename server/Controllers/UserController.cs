@@ -25,6 +25,8 @@ namespace server.Controllers
             _modelStateWrapper = new ModelStateWrapper(this.ModelState);
         }
 
+
+        //User login
         [HttpPost]
         [Route("login")]
         public async Task<IActionResult> Login([FromBody] LoginDTO loginDTO)
@@ -32,6 +34,8 @@ namespace server.Controllers
             return await _authenticationService.Login(loginDTO, _modelStateWrapper);
         }
 
+
+        //User registration
         [HttpPost]
         [Route("register")]
         public async Task<IActionResult> RegisterUser([FromBody] RegistrationDTO registrationDTO)
@@ -39,6 +43,7 @@ namespace server.Controllers
             return await _authenticationService.Register(registrationDTO, _modelStateWrapper, $"{Request.Scheme}://{Request.Host}");
         }
 
+        //Sends confirmation link after registration
         [HttpPost]
         [Route("confirm/{userId}/{token}")]
         public async Task<IActionResult> ConfirmUser(string userId, string token)

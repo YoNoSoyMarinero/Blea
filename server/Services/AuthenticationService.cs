@@ -38,7 +38,7 @@ namespace server.Services
          */
         public async Task<IActionResult> Login(LoginDTO loginDTO, IValidationDictionary modelState)
         {
-            if (!modelState.IsValid) return new BadRequestResult();
+            if (!modelState.IsValid) return new BadRequestObjectResult( modelState.GetErrors());
 
             var user = await _userRepository.GetByEmail(loginDTO.Email);
 
@@ -100,7 +100,7 @@ namespace server.Services
         }
         
         /**
-         * @oaram registrationDTO - DTO with registration values (user details)
+         * @param registrationDTO - DTO with registration values (user details)
          * @param modelState - Implements IValidationDictionary interface used to validate user input from Registration DTO
          * @param requestUrl - String holding the value from the frontend url, eg. http://someFrontendUrl so we can concatenate it for verification link
          */
