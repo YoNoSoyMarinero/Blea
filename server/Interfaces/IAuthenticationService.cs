@@ -6,10 +6,8 @@ namespace server.Interfaces
 {
     public interface IAuthenticationService
     {
-        public Task<IActionResult> Login (LoginDTO loginDTO);
-        public Task<IActionResult> Register (RegistrationDTO registrationDTO, IValidationDictionary modelState);
-        public Task<IActionResult> ConfirmEmail(string userId, string code);
-        public Task<IActionResult> SendVerificationEmail(string url, string userEmail);
-
+        public Task<IActionResult> Login (LoginDTO loginDTO, IValidationDictionary modelState);
+        public Task<IActionResult> Register (RegistrationDTO registrationDTO, IValidationDictionary modelState, String requestUrl);
+        public Task<IActionResult> ConfirmUser(string userId, string token);
     }
 }

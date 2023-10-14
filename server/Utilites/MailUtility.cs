@@ -1,9 +1,9 @@
 ﻿using MailKit.Net.Smtp;
 using MailKit.Security;
-using server.Models;
 using server.Interfaces;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using server.DTOs;
 
 namespace server.Utilites
 {
