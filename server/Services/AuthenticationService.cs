@@ -76,7 +76,7 @@ namespace server.Services
         }
 
         /**
-         * @oaram userId - Id of the user to be verified
+         * @param userId - Id of the user to be verified
          * @param code - verification token in the database
          */
         public async Task<IActionResult> ConfirmUser(string userId, string token)
