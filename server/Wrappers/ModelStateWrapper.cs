@@ -21,6 +21,14 @@ namespace server.Wrappers
 			_modelState.AddModelError(key, errorMessage);
 		}
 
+		public Dictionary<string, string[]> GetErrors()
+		{
+			return _modelState.Where(x => x.Value.Errors.Any())
+					   .ToDictionary(
+						kvp => kvp.Key,
+						kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray());
+        }
+
 		public bool IsValid
 		{
 			get { return _modelState.IsValid; }
