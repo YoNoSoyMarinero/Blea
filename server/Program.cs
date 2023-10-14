@@ -13,6 +13,7 @@ using server.Services;
 using server.Utilites;
 using server.Wrappers;
 using System.Text;
+using server.DTOs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,8 +40,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
                     options.UseSqlServer(ConfigurationExtensions.GetConnectionString(builder.Configuration, "AppConnectionString")));
 
 
-builder.Services.AddIdentity<User, IdentityRole>()
-    .AddEntityFrameworkStores<AppDbContext>()
+builder.Services.AddIdentity<User, IdentityRole>(options =>
+{
+    options.User.RequireUniqueEmail = true;
+})
+.AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
 
 

@@ -16,28 +16,42 @@ namespace server.Repository
 
         public async Task<IdentityResult> Add(User user)
         {
-            var result = await userManager.CreateAsync(user, user.Password);
-            return result;
+            return await userManager.CreateAsync(user, user.Password);
         }
 
-        public void Delete(User user)
+        public async Task<IdentityResult> Delete(User user)
         {
-            throw new NotImplementedException();
+            return await userManager.DeleteAsync(user);
         }
 
-        public async Task<User> GetById(int id)
+        public async Task<User> GetById(string id)
         {
-            return await userManager.FindByIdAsync(id.ToString());
+            return await userManager.FindByIdAsync(id);
         }
 
-        public async Task<bool> EmailExists(string email)
+        public async Task<User> GetByEmail(string email)
         {
-            return await userManager.FindByEmailAsync(email) != null;
+            return await userManager.FindByEmailAsync(email);
         }
 
         public void Update(User user)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<string> GenerateConfirmationToken(User user)
+        {
+            return await userManager.GenerateEmailConfirmationTokenAsync(user);
+        }
+        
+        public async Task<IdentityResult> ConfirmUser(User user, string token)
+        {
+            return await userManager.ConfirmEmailAsync(user, token);
+        }
+        
+        public async Task<bool> CheckPassword(User user, string password)
+        {
+            return await userManager.CheckPasswordAsync(user, password);
         }
     }
 }

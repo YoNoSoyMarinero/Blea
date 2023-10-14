@@ -15,41 +15,35 @@ namespace server.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly UserManager<User> userManager;
         private readonly IAuthenticationService _authenticationService;
         private readonly IValidationDictionary _modelStateWrapper;
         
-        public UserController(UserManager<User> userManager, IAuthenticationService authenticationService)
+        public UserController(IAuthenticationService authenticationService)
         {
-            this.userManager = userManager;
+
             _authenticationService = authenticationService;
             _modelStateWrapper = new ModelStateWrapper(this.ModelState);
         }
 
-
-        //User login
         [HttpPost]
         [Route("login")]
         public async Task<IActionResult> Login([FromBody] LoginDTO loginDTO)
         {
-            return Ok();
+            return await _authenticationService.Login(loginDTO, _modelStateWrapper);
         }
 
-
-        //User registration
         [HttpPost]
-        [Route("user/registration")]
-        public async Task<IActionResult> Registration([FromBody] RegistrationDTO registrationDTO)
+        [Route("register")]
+        public async Task<IActionResult> RegisterUser([FromBody] RegistrationDTO registrationDTO)
         {
-            return await _authenticationService.Register(registrationDTO, _modelStateWrapper);
+            return await _authenticationService.Register(registrationDTO, _modelStateWrapper, $"{Request.Scheme}://{Request.Host}");
         }
 
-        //Sends confirmation link after registration
         [HttpPost]
-        [Route("EmailConfirmation/{userId}/{code}", Name = "EmailConfirmation")]
-        public async Task<IActionResult> EmailConfirmation(string userId, string code)
+        [Route("confirm/{userId}/{token}")]
+        public async Task<IActionResult> ConfirmUser(string userId, string token)
         {
-            return await _authenticationService.ConfirmEmail(userId, code);
+            return await _authenticationService.ConfirmUser(userId, token);
         }
 
         [HttpGet]

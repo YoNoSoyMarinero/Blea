@@ -8,7 +8,6 @@ namespace server.Wrappers
 	{
 		private ModelStateDictionary _modelState;
 
-
 		public ModelStateWrapper(ModelStateDictionary modelState)
 		{
 			_modelState = modelState;
