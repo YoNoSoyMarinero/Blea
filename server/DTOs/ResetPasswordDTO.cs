@@ -2,12 +2,12 @@
 
 namespace server.DTOs
 {
-    public class LoginDTO
+    public class ResetPasswordDTO
     {
-        [Required(ErrorMessage = "Email is required")]
-        [StringLength(100, MinimumLength = 8, ErrorMessage = "Email must be at least 8 characters long")]
-        [EmailAddress(ErrorMessage = "Email is not in a valid format.")]
-        public string Email { get; set; }
+        [Required]
+        public string UserId { get; set; }
+        [Required]
+        public string Token { get; set; }
 
         [Required(ErrorMessage = "Password is required")]
         [StringLength(100, MinimumLength = 8, ErrorMessage = "Password must be at least 8 characters long")]

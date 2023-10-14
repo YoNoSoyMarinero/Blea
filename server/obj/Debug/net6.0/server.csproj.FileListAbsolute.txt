@@ -159,3 +159,4 @@ C:\Users\Admin\source\repos\Blea\server\obj\Debug\net6.0\server.pdb
 C:\Users\Admin\source\repos\Blea\server\obj\Debug\net6.0\server.genruntimeconfig.cache
 C:\Users\Admin\source\repos\Blea\server\obj\Debug\net6.0\ref\server.dll
 C:\Users\1milo\Desktop\Blea\server\bin\Debug\net6.0\web.config
+C:\Users\Admin\source\repos\Blea\server\bin\Debug\net6.0\web.config
