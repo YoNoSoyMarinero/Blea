@@ -4,7 +4,7 @@ import {LoginPage} from "./pages/Login/LoginPage";
 
 function App() {
   return (
-    <div className="App">
+    <div className="App" id = "app-div">
       <BrowserRouter>
         <Routes>
           <Route element={<LoginPage/>} path="/login" />
