@@ -1,0 +1,110 @@
+.centered-container {
+    margin-top: 14rem;
+    border-radius: 5%;
+    min-height: 50rem;
+    min-width: 50rem;
+    align-items: left;
+}
+
+.centered-container-left h1 {
+    color: rgb(36, 36, 36);
+    padding-top: 5rem;
+    padding-left: 5rem;
+}
+
+.centered-container-left h3 {
+    color: rgba(36, 36, 36, 0.501);
+}
+
+.input-container{
+    padding-top: 4rem;
+    padding-left: 5rem;
+}
+
+.centered-container-left input {
+    border-radius: 2%;
+    width: 30rem;
+    height: 3rem;
+    border: none;
+    outline: none;
+    background-color: rgb(255, 255, 255);
+    border-bottom: 1px solid #ccc;
+    font-size: x-large;
+}
+
+.button-container {
+    padding-top: 6rem;
+    padding-left: 5rem;
+}
+
+.error-container {
+    padding-top: 1rem;
+    padding-left: 5rem;
+}
+
+.error-container p{
+    color: rgb(168, 11, 11);
+    font-size: larger;
+}
+
+.reset-password-container {
+    padding-top: 1rem;
+    padding-left: 5rem;
+}
+.reset-password-container p {
+    color: rgb(36, 36, 36);
+    font-size: larger;
+}
+
+.reset-password-container p a {
+    color: white;
+    text-decoration: none;
+}
+
+
+.centered-container-left button {
+    border-radius: 5%;
+    border: none;
+    outline: none;
+    color: rgba(36, 36, 36, 0.501);;
+    background-color: rgba(171, 170, 170, 0);
+    transition: 1s;
+    font-size: x-large;
+}
+
+.centered-container-left button:hover {
+    border-radius: 5%;
+    border: none;
+    outline: none;
+    color: rgba(0, 0, 0, 0.791);;
+    background-color: rgba(171, 170, 170, 0);
+    transition: 1s;
+    font-size: xx-large;
+}
+
+.centered-container-left {
+    background-color: rgba(0, 84, 22, 0.672);
+}
+
+.centered-container-right {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+
+.video-container {
+    height: 200px;
+    width: 200px;
+    overflow: hidden;
+    position: relative;
+  }
+  
+.video-container video {
+    min-width:100%;
+    min-height:100%;
+    position: absolute;
+    top: 100%;
+    left: 100%;
+    transform: translateX(-90%) translateY(-65%);
+  }
+  
+
