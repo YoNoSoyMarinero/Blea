@@ -7,27 +7,31 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
 
 namespace server.Services
 {
     /**
      * This is a class used to perform all of the needed bussines logic for performing login, registration, verification and password reseting
      */
-    public class AuthenticationService : IAuthenticationService
+    public class AuthenticationService : Interfaces.IAuthenticationService
     {
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
         private readonly IMailUtility _mailUtility;
         private readonly ITokenEncoderUtility _tokenEncoderUtility;
         private readonly IConfiguration _configuration;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AuthenticationService(IUserRepository userRepository, IMapper mapper, IMailUtility mailUtility, ITokenEncoderUtility tokenEncoderUtility, IConfiguration configuration)
+        public AuthenticationService(IUserRepository userRepository, IMapper mapper, IMailUtility mailUtility, ITokenEncoderUtility tokenEncoderUtility, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
         {
             _userRepository = userRepository;
             _mapper = mapper;
-            _mailUtility = mailUtility;;
+            _mailUtility = mailUtility; ;
             _tokenEncoderUtility = tokenEncoderUtility;
             _configuration = configuration;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         /**
@@ -50,33 +54,23 @@ namespace server.Services
             if (!await _userRepository.CheckPassword(user, loginDTO.Password)) return new StandardServiceResponseDTO(
                                                                                             ResponseType.Unauthorized, 
                                                                                             new Dictionary<string, string> { { "message", "Incorrect password." } });
-
-            // Create JWT
-            var authClaims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, user.UserName),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                };
-
-            var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
-
-            var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
-                expires: DateTime.Now.AddHours(2), 
-                claims: authClaims,
-                signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
-            );
-
-            // Send JWT in status 200 response
-            JWTTokenDTO jwtDTO = new JWTTokenDTO()
+            // Using cookie authentication to authorize logged in user
+            var claims = new List<Claim>
             {
-                Username = user.UserName,
-                Token = new JwtSecurityTokenHandler().WriteToken(token),
-                Expiration = token.ValidTo
+                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim(ClaimTypes.Email, user.Email),
             };
 
-            return new StandardServiceResponseDTO(ResponseType.Success, new Dictionary<string, object> { { "message", "Log in successfull." },{"jwt", jwtDTO } });
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+            var authProperties = new AuthenticationProperties();
+
+            await _httpContextAccessor.HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(claimsIdentity),
+                authProperties);
+
+            return new StandardServiceResponseDTO(ResponseType.Success, new Dictionary<string, object> { { "message", "Log in successfull." }});
         }
 
         /**

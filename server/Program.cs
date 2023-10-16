@@ -10,6 +10,8 @@ using server.Repository;
 using server.Utilites;
 using System.Text;
 using server.DTOs;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Builder;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,27 +49,19 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
 
-// Configure JWT token for authentication service
+// Configure Cookie for authentication service
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultSignOutScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 })
-
-.AddJwtBearer(options =>
+.AddCookie(options =>
 {
-    options.SaveToken = true;
-    options.RequireHttpsMetadata = false;
-    options.TokenValidationParameters = new TokenValidationParameters()
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
-    };
+    options.LoginPath = "/User/Login"; 
+    options.Cookie.Name = "authenticationCookie"; 
 });
+
 
 // Configure AutoMapper
 builder.Services.AddAutoMapper(typeof(UserProfile));
@@ -75,8 +69,16 @@ builder.Services.AddAutoMapper(typeof(UserProfile));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITokenEncoderUtility, TokenEncoderUtility>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
 var app = builder.Build();
+
+//Configure cookie policy
+var cookiePolicyOptions = new CookiePolicyOptions
+{
+    MinimumSameSitePolicy = SameSiteMode.Strict,
+};
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -84,11 +86,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
 app.UseCors();
-
+app.UseCookiePolicy(cookiePolicyOptions);
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
