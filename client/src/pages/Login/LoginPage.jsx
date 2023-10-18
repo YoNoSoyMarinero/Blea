@@ -1,6 +1,6 @@
 import React, {useState} from "react"
 import './LoginPageStyle.css'
-import video from "../../images/basketball.mp4"
+import video from "../../assets/basketball.mp4"
 
 
 export const LoginPage = (props) => {
@@ -8,6 +8,30 @@ export const LoginPage = (props) => {
   const [email, setEmail] = useState("");
   const [password, setPassword ] = useState("");
   const [error, setError ] = useState(false);
+
+  const onTest = () => {
+    let headers = new Headers();
+    headers.append("Content-type", "Content-Type", "application/json")
+    const url = 'https://localhost:7066/api/Test/test';
+
+    return fetch(url, {
+        method: "GET",
+        headers: headers,
+        credentials: "include"
+    })
+    .then((response) => {
+        if (!response.ok) {
+            throw new Error("Request failed with status: " + response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log(data)
+    })
+    .catch(e => {
+        console.log("Error: ", e);
+    });
+  }
 
 
   const onSubmit = () => {
@@ -24,6 +48,7 @@ export const LoginPage = (props) => {
     fetch(url, {
       method: "POST",
       headers: headers,
+      credentials: "include",
       body: JSON.stringify(body)
     })
       .then(response => {
@@ -45,9 +70,10 @@ export const LoginPage = (props) => {
 
   return (
     <div className="container">
+      <button onClick={onTest}>Test</button>
       <div className="row">
         <div className="col-sm-10 col-lg-6">
-          <div className="centered-container  centered-container-left">
+          <div className="centered-container-login  centered-container-left">
             <h1>Let's play</h1>
             <div className="input-container">
               <h3>Email: </h3>
@@ -69,7 +95,7 @@ export const LoginPage = (props) => {
           </div>
         </div>
         <div className="col-sm-10 col-lg-6">
-          <div className="centered-container video-container centered-container-right">
+          <div className="centered-container-login video-container centered-container-right">
               <video autoPlay muted loop>
                 <source src={video} type="video/mp4"/>
               </video>

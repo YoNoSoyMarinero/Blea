@@ -29,11 +29,13 @@ builder.Services.AddTransient<IMailUtility, MailUtility>();
 // Configure CORS
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(
-        builder =>
-        {
-            builder.WithOrigins("*").AllowAnyHeader().AllowAnyMethod();
-        });
+    options.AddPolicy("AllowSpecificOrigin", builder =>
+    {
+        builder.WithOrigins("http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
 });
 
 // Configure AppDbContext
@@ -58,8 +60,9 @@ builder.Services.AddAuthentication(options =>
 })
 .AddCookie(options =>
 {
-    options.LoginPath = "/User/Login"; 
-    options.Cookie.Name = "authenticationCookie"; 
+    options.LoginPath = "/User/Login";
+    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.Name = "authenticationCookie";
 });
 
 
@@ -73,25 +76,18 @@ builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
 var app = builder.Build();
 
-//Configure cookie policy
-var cookiePolicyOptions = new CookiePolicyOptions
-{
-    MinimumSameSitePolicy = SameSiteMode.Strict,
-};
-
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseCors();
-app.UseCookiePolicy(cookiePolicyOptions);
-app.UseHttpsRedirection();
 
+app.UseCors("AllowSpecificOrigin");
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseHttpsRedirection();
 
 app.MapControllers();
 
