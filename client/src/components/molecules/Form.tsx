@@ -1,36 +1,52 @@
 /**
- * This is a reusable form component that will dynamically instance all the react components that are nested in itself from wherever it is called
- * You can optionally pass a react-hook-forms register to pass its props to the input
+ * This is a reusable form component that will dynamically instantiate all the React components that are nested in itself from wherever it is called.
+ * You can optionally pass a react-hook-forms register to pass its props to the input.
  */
-import { FC, createElement } from "react";
+import { FC, createElement, FormHTMLAttributes } from "react";
 import * as React from "react";
 import { ReactNode } from "react";
-import { reactHookFormRegisterType } from "../atoms/Input";
+import { ReactHookFormRegisterType } from "../../types/globalTypes";
 
-export interface IFormProps {
-  defaultValues?: any;
+interface IFormProps extends FormHTMLAttributes<HTMLFormElement>{
   children?: ReactNode;
   buttonLabel?: string;
   onSubmit?: any;
   handleSubmit?: any;
-  register?: reactHookFormRegisterType;
+  register?: ReactHookFormRegisterType;
   className?: string;
+  formMessage?: string;
 }
 
-const Form: FC<IFormProps> = ({ defaultValues, buttonLabel = "Submit", children, onSubmit, handleSubmit, register, ...rest }) => {
+const Form: FC<IFormProps> = ({
+  buttonLabel = "Submit",
+  children,
+  onSubmit,
+  handleSubmit,
+  register,
+  formMessage,
+  ...rest 
+}) => {
   return (
-    <form onSubmit={handleSubmit(onSubmit)} {...rest}>
-      <div className="d-flex justify-content-center flex-column">
-        {Array.isArray(children)
-          ? children.map((child) => {
-              return child.props.name
-                ? createElement(child.type, { ...{ ...child.props, register, key: child.props.name } })
-                : child;
-            })
-          : children}
-      </div>
-      <button className="btn btn--brand">{buttonLabel}</button>
-    </form>
+    <div>
+      <p>{formMessage}</p>
+      <form onSubmit={handleSubmit(onSubmit)} {...rest}>
+        <div className="d-flex justify-content-center flex-column">
+          {Array.isArray(children)
+            ? children.map((child) => {
+                return child.props.name
+                  ? createElement(child.type, 
+                      { ...{ ...child.props,
+                        register,
+                          key: child.props.name 
+                        } 
+                      })
+                  : child;
+              })
+            : children}
+        </div>
+        <button className="btn btn--brand">{buttonLabel}</button>
+      </form>
+    </div>
   );
 };
 

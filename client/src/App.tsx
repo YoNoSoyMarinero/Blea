@@ -1,6 +1,15 @@
 import * as React from 'react'
-import RegisterForm from "./components/organisms/RegisterForm/RegisterForm"
+import RegistrationPage from './pages/Registration/RegistrationPage';
+import LoginPage from './pages/Login/LoginPage';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 export default function App() {
-  return <RegisterForm />;
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route element={<LoginPage/>} path="/login" />
+        <Route element={<RegistrationPage/>} path="/registration"/>
+      </Routes>
+    </BrowserRouter>
+  )
 }
