@@ -82,5 +82,25 @@ namespace server.Controllers
             ActionResultWrapper response = new ActionResultWrapper(dto);
             return response.GetResponse();
         }
+
+        [HttpGet]
+        [Route("check-email/{email}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> VerifyEmailExists([Required] string email)
+        {
+            StandardServiceResponseDTO dto = await _authenticationService.VerifyEmailExists(email);
+            ActionResultWrapper response = new ActionResultWrapper(dto);
+            return response.GetResponse();
+        }
+
+        [HttpGet]
+        [Route("check-username/{userName}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> VerifyUsernameExists([Required] string userName)
+        {
+            StandardServiceResponseDTO dto = await _authenticationService.VerifyUsernameExists(userName);
+            ActionResultWrapper response = new ActionResultWrapper(dto);
+            return response.GetResponse();
+        }
     }
 }

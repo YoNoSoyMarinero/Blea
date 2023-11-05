@@ -46,6 +46,11 @@ namespace server.Repository
             return await userManager.FindByEmailAsync(email);
         }
 
+        public async Task<User> GetByUsername(string username)
+        {
+            return await userManager.FindByNameAsync(username);
+        }
+
         public async Task<string> GenerateConfirmationToken(User user)
         {
             return await userManager.GenerateEmailConfirmationTokenAsync(user);

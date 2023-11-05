@@ -7,6 +7,7 @@ namespace server.Interfaces
     {
         Task<User> GetById(string id);
         Task<User> GetByEmail(string email);
+        Task<User> GetByUsername(string username);
         Task<IdentityResult> Add(User user);
         Task<IdentityResult> ResetUserPassword(User user, string token, string newPassword);
         Task<IdentityResult> ConfirmUser(User user, string token);
