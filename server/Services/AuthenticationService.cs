@@ -41,19 +41,34 @@ namespace server.Services
         public async Task<StandardServiceResponseDTO> Login(LoginDTO loginDTO, IValidationDictionary modelState)
         {
             // Check input in LoginDTO
-            if (!modelState.IsValid) return new StandardServiceResponseDTO(ResponseType.BadRequest, new Dictionary<string, string> { { "message", "Invalid Input" } });
+            if (!modelState.IsValid) return new StandardServiceResponseDTO(
+                ResponseType.BadRequest, 
+                new Dictionary<string, string> { 
+                    { "message", "Invalid Input" } 
+                });
            
             // Get the corresponding user by email
             var user = await _userRepository.GetByEmail(loginDTO.Email);
 
             // Check for the user email, then check if the user is confirmed and lastly check for their password
-            if (user == null) return new StandardServiceResponseDTO(ResponseType.NotFound, new Dictionary<string, string> { { "message", "User not found." } });
+            if (user == null) return new StandardServiceResponseDTO(
+                ResponseType.NotFound, 
+                new Dictionary<string, string> { 
+                    { "message", "User not found." } 
+                });
 
-            if (!user.EmailConfirmed) return new StandardServiceResponseDTO(ResponseType.Unauthorized, new Dictionary<string, string> { { "message", "User is not verified." } });
+            if (!user.EmailConfirmed) return new StandardServiceResponseDTO(
+                ResponseType.Unauthorized,
+                new Dictionary<string, string> { 
+                    { "message", "User is not verified." } 
+                });
 
             if (!await _userRepository.CheckPassword(user, loginDTO.Password)) return new StandardServiceResponseDTO(
-                                                                                            ResponseType.Unauthorized, 
-                                                                                            new Dictionary<string, string> { { "message", "Incorrect password." } });
+                ResponseType.Unauthorized, 
+                new Dictionary<string, string> { 
+                    { "message", "Incorrect password." } 
+                });
+
             // Using cookie authentication to authorize logged in user
             var claims = new List<Claim>
             {
@@ -70,7 +85,11 @@ namespace server.Services
                 new ClaimsPrincipal(claimsIdentity),
                 authProperties);
 
-            return new StandardServiceResponseDTO(ResponseType.Success, new Dictionary<string, object> { { "message", "Log in successfull." }});
+            return new StandardServiceResponseDTO(
+                ResponseType.Success, 
+                new Dictionary<string, object> { 
+                    { "message", "Log in successfull." }
+                });
         }
 
         /**
@@ -82,18 +101,31 @@ namespace server.Services
             var user = await _userRepository.GetById(userId);
             
             // Check if user with this id exists
-            if (user == null) return new StandardServiceResponseDTO(ResponseType.NotFound, new Dictionary<string, string> { { "message", "User not found." } });
+            if (user == null) return new StandardServiceResponseDTO(
+                ResponseType.NotFound, 
+                new Dictionary<string, string> { 
+                    { "message", "User not found." } 
+                });
 
             // Decode the token and confirm the user based on the token
             token = _tokenEncoderUtility.DecodeToken(token);
             var result = await _userRepository.ConfirmUser(user, token);
 
             // Generate response based on if the user confirmation was successfull
-            if (result.Succeeded) return new StandardServiceResponseDTO(ResponseType.Success, new Dictionary<string, string> { { "message", "User confirmed!" } }); ;
+            if (result.Succeeded) return new StandardServiceResponseDTO(
+                ResponseType.Success, 
+                new Dictionary<string, string> { 
+                    { "message", "User confirmed!" } 
+                }); ;
 
             var errorList = result.Errors.Select(e => e.Description).ToList();
             var errors = string.Join(", ", errorList);
-            return new StandardServiceResponseDTO(ResponseType.BadRequest, new Dictionary<string, string> { { "message", $"{errors}" } });
+
+            return new StandardServiceResponseDTO(
+                ResponseType.BadRequest,
+                new Dictionary<string, string> { 
+                    { "message", $"{errors}" } 
+                });
         }
         
         /**
@@ -104,7 +136,11 @@ namespace server.Services
         public async Task<StandardServiceResponseDTO> Register(RegistrationDTO registrationDTO, IValidationDictionary modelState, String requestUrl)
         {
             // If the registration details are invalid, return 400 request with the details of invalid info
-            if (!modelState.IsValid) return new StandardServiceResponseDTO(ResponseType.BadRequest, new Dictionary<string, string> { { "message", "Invalid Input" } });
+            if (!modelState.IsValid) return new StandardServiceResponseDTO(
+                ResponseType.BadRequest, 
+                new Dictionary<string, string> { 
+                    { "message", "Invalid Input" } 
+                });
 
             // Map DTO to the User object
             User user = _mapper.Map<User>(registrationDTO);
@@ -119,18 +155,30 @@ namespace server.Services
                 string url = $"{requestUrl}/User/confirm/{user.Id}/{token}";
 
                 MailData mailData = new MailData(new List<string> { user.Email }, "Blea email verification", $"Click this link to verify your email: {url}");
+
                 if (await _mailUtility.SendEmailAsync(mailData, new CancellationToken())) return new StandardServiceResponseDTO(
-                                                                                                        ResponseType.Success, 
-                                                                                                        new Dictionary<string, string> { { "message", "Successfull registration" } });
+                    ResponseType.Success, 
+                    new Dictionary<string, string> { 
+                        { "message", "Successfull registration" } 
+                    });
 
                 // If the email was not sent delete the user and respond with status 500
                 await _userRepository.Delete(user);
-                return new StandardServiceResponseDTO(ResponseType.InternalServerError, new Dictionary<string, string> { { "message", "Registration failed, please try again later." } });
+
+                return new StandardServiceResponseDTO(ResponseType.InternalServerError, 
+                    new Dictionary<string, string> { 
+                        { "message", "Registration failed, please try again later." } 
+                    });
             } else
             {
                 var errorList = result.Errors.Select(e => e.Description).ToList();
                 var errors = string.Join(", ", errorList);
-                return new StandardServiceResponseDTO(ResponseType.Conflict, new Dictionary<string, string> { { "message", $"{errors}" } });
+
+                return new StandardServiceResponseDTO(
+                    ResponseType.Conflict,
+                    new Dictionary<string, string> { 
+                        { "message", $"{errors}" } 
+                    });
             }
         }
 
@@ -142,7 +190,12 @@ namespace server.Services
         {
             // Get the corresponding user by email
             var user = await _userRepository.GetByEmail(email);
-            if (user == null) return new StandardServiceResponseDTO(ResponseType.BadRequest, new Dictionary<string, string> { { "message", "User not found" } });
+
+            if (user == null) return new StandardServiceResponseDTO(
+                ResponseType.BadRequest, 
+                new Dictionary<string, string> { 
+                    { "message", "User not found" } 
+                });
 
             // Generate password reset token, concatenate it into the url and send a mail to the user with it
             var token = await _userRepository.GeneratePasswordResetToken(user);
@@ -150,12 +203,19 @@ namespace server.Services
             string url = $"{requestUrl}/User/password-reset/{user.Id}/{token}";
 
             MailData mailData = new MailData(new List<string> { email }, "Blea password reset", $"Click on this link to reset your password: {url}");
+
             if (await _mailUtility.SendEmailAsync(mailData, new CancellationToken())) return new StandardServiceResponseDTO(
-                                                                                                        ResponseType.Success,
-                                                                                                        new Dictionary<string, string> { { "message", "Password reset link has been sent." } });
+                ResponseType.Success,
+                new Dictionary<string, string> { 
+                    { "message", "Password reset link has been sent." } 
+                });
 
             // If email fails to be sent, respond with statu 500
-            return new StandardServiceResponseDTO(ResponseType.InternalServerError, new Dictionary<string, string> { { "message", "Password reset failed, please try again later." } });
+            return new StandardServiceResponseDTO(
+                ResponseType.InternalServerError,
+                new Dictionary<string, string> { 
+                    { "message", "Password reset failed, please try again later." } 
+                });
         }
 
         /**
@@ -164,23 +224,82 @@ namespace server.Services
         public async Task<StandardServiceResponseDTO> ResetUserPassword(ResetPasswordDTO passwordResetDTO, IValidationDictionary modelState)
         {
             // If the registration details are invalid, return 400 request with the details of invalid info
-            if (!modelState.IsValid) return new StandardServiceResponseDTO(ResponseType.BadRequest, new Dictionary<string, string> { { "message", "Invalid Input." } });
+            if (!modelState.IsValid) return new StandardServiceResponseDTO(
+                ResponseType.BadRequest,
+                new Dictionary<string, string> { 
+                    { "message", "Invalid Input." } 
+                });
 
             var user = await _userRepository.GetById(passwordResetDTO.UserId);
+
             // check if the user exists
-            if (user == null) return new StandardServiceResponseDTO(ResponseType.NotFound, new Dictionary<string, string> { { "message", "User not found." } });
+            if (user == null) return new StandardServiceResponseDTO(ResponseType.NotFound,
+                new Dictionary<string, string> {
+                    { "message", "User not found." }
+                });
 
             // decode the token from the request
             var token = _tokenEncoderUtility.DecodeToken(passwordResetDTO.Token);
             // reset the user password
             var result = await _userRepository.ResetUserPassword(user, token, passwordResetDTO.Password);
+
             // if the reset was successfull respond with status 200
-            if (result.Succeeded) return new StandardServiceResponseDTO(ResponseType.Success, new Dictionary<string, string> { { "message", "Password successfully reset." } });
+            if (result.Succeeded) return new StandardServiceResponseDTO(ResponseType.Success,
+                new Dictionary<string, string> { 
+                    { "message", "Password successfully reset." }
+                });
 
             // If the password was not successfull respond with appropriate details
             var errorList = result.Errors.Select(e => e.Description).ToList();
             var errors = string.Join(", ", errorList);
-            return new StandardServiceResponseDTO(ResponseType.BadRequest, new Dictionary<string, string> { { "message", $"{errors}" } });
+
+            return new StandardServiceResponseDTO(ResponseType.BadRequest,
+                new Dictionary<string, string> {
+                    { "message", $"{errors}" }
+                });
+        }
+        /**
+         * @param email - email used to check if user exists
+         */
+        public async Task<StandardServiceResponseDTO> VerifyEmailExists(string email)
+        {
+            var user = await _userRepository.GetByEmail(email);
+ 
+            if (user == null) return new StandardServiceResponseDTO(
+                ResponseType.Success, 
+                new Dictionary<string, string> { 
+                    { "message", "Email not found." }, 
+                    { "emailFound", "false" } 
+                });
+
+            return new StandardServiceResponseDTO(
+                ResponseType.Success, 
+                new Dictionary<string, string> { 
+                    { "message", "Email found." },
+                    { "emailFound", "true" } 
+                });
+        }
+
+        /**
+         * @param userName  - username used to check if user exists
+         */
+        public async Task<StandardServiceResponseDTO> VerifyUsernameExists(string username)
+        {
+            var user = await _userRepository.GetByUsername(username);
+
+            if (user == null) return new StandardServiceResponseDTO(
+                ResponseType.Success,
+                new Dictionary<string, string> {
+                    { "message", "Username not found." },
+                    { "usernameFound", "false" }
+                });
+
+            return new StandardServiceResponseDTO(
+                ResponseType.Success,
+                new Dictionary<string, string> {
+                    { "message", "Username found." },
+                    { "usernameFound", "true" }
+                });
         }
     }
 }
