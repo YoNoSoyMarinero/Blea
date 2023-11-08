@@ -1,17 +1,13 @@
 using server.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using server.Interfaces;
 using server.Mappers;
 using server.Models;
 using server.Repository;
 using server.Utilites;
-using System.Text;
 using server.DTOs;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Builder;
 
 var builder = WebApplication.CreateBuilder(args);
 

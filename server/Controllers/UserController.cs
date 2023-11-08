@@ -1,10 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json.Linq;
 using server.DTOs;
 using server.Interfaces;
-using server.Models;
 using server.Wrappers;
 using System.ComponentModel.DataAnnotations;
+using server.Services;
 
 namespace server.Controllers
 {
@@ -29,8 +28,8 @@ namespace server.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Login([FromBody] LoginDTO loginDTO)
         {
-            StandardServiceResponseDTO dto = await _authenticationService.Login(loginDTO, _modelStateWrapper);
-            ActionResultWrapper response = new ActionResultWrapper(dto);
+            StandardServiceResponseDTO<AuthenticationService.ResultData> dto = await _authenticationService.Login(loginDTO, _modelStateWrapper);
+            ActionResultWrapper<AuthenticationService.ResultData> response = new ActionResultWrapper<AuthenticationService.ResultData>(dto);
             return response.GetResponse();
         }
 
@@ -42,8 +41,9 @@ namespace server.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> RegisterUser([FromBody] RegistrationDTO registrationDTO)
         {
-            StandardServiceResponseDTO dto = await _authenticationService.Register(registrationDTO, _modelStateWrapper, $"{Request.Scheme}://{Request.Host}");
-            ActionResultWrapper response = new ActionResultWrapper(dto);
+            StandardServiceResponseDTO<AuthenticationService.ResultData> dto = await _authenticationService.Register(
+                registrationDTO, _modelStateWrapper, $"{Request.Scheme}://{Request.Host}");
+            ActionResultWrapper<AuthenticationService.ResultData> response = new ActionResultWrapper<AuthenticationService.ResultData>(dto);
             return response.GetResponse();
         }
 
@@ -54,8 +54,8 @@ namespace server.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> ConfirmUser([Required] string userId, [Required] string token)
         {
-            StandardServiceResponseDTO dto = await _authenticationService.ConfirmUser(userId, token);
-            ActionResultWrapper response = new ActionResultWrapper(dto);
+            StandardServiceResponseDTO<AuthenticationService.ResultData> dto = await _authenticationService.ConfirmUser(userId, token);
+            ActionResultWrapper<AuthenticationService.ResultData> response = new ActionResultWrapper<AuthenticationService.ResultData>(dto);
             return response.GetResponse();
         }
 
@@ -66,8 +66,8 @@ namespace server.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> PasswordResetRequest([Required] string email)
         {
-            StandardServiceResponseDTO dto = await _authenticationService.SendPasswordResetRequest(email, $"{Request.Scheme}://{Request.Host}");
-            ActionResultWrapper response = new ActionResultWrapper(dto);
+            StandardServiceResponseDTO<AuthenticationService.ResultData> dto = await _authenticationService.SendPasswordResetRequest(email, $"{Request.Scheme}://{Request.Host}");
+            ActionResultWrapper<AuthenticationService.ResultData> response = new ActionResultWrapper<AuthenticationService.ResultData>(dto);
             return response.GetResponse();
         }
 
@@ -78,8 +78,28 @@ namespace server.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> PasswordResetChange([FromBody] ResetPasswordDTO passwordResetDTO)
         {
-            StandardServiceResponseDTO dto = await _authenticationService.ResetUserPassword(passwordResetDTO, _modelStateWrapper);
-            ActionResultWrapper response = new ActionResultWrapper(dto);
+            StandardServiceResponseDTO<AuthenticationService.ResultData> dto = await _authenticationService.ResetUserPassword(passwordResetDTO, _modelStateWrapper);
+            ActionResultWrapper<AuthenticationService.ResultData> response = new ActionResultWrapper<AuthenticationService.ResultData>(dto);
+            return response.GetResponse();
+        }
+
+        [HttpGet]
+        [Route("check-email/{email}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> VerifyEmailExists([Required] string email)
+        {
+            StandardServiceResponseDTO<AuthenticationService.ResultData> dto = await _authenticationService.VerifyEmailExists(email);
+            ActionResultWrapper<AuthenticationService.ResultData> response = new ActionResultWrapper<AuthenticationService.ResultData>(dto);
+            return response.GetResponse();
+        }
+
+        [HttpGet]
+        [Route("check-username/{userName}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> VerifyUsernameExists([Required] string userName)
+        {
+            StandardServiceResponseDTO<AuthenticationService.ResultData> dto = await _authenticationService.VerifyUsernameExists(userName);
+            ActionResultWrapper<AuthenticationService.ResultData> response = new ActionResultWrapper<AuthenticationService.ResultData>(dto);
             return response.GetResponse();
         }
     }

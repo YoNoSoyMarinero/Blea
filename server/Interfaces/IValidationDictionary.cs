@@ -1,5 +1,4 @@
-﻿using System;
-namespace server.Interfaces
+﻿namespace server.Interfaces
 {
 	public interface IValidationDictionary
 	{

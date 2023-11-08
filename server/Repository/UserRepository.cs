@@ -4,9 +4,9 @@ using server.Models;
 
 namespace server.Repository
 {
-    /**
-     * This is a class that wraps the Indentities userManager and Encapsulates all of its functionalities
-     */
+    /// <summary>
+    /// This is a class that wraps the Indentities userManager and Encapsulates all of its functionalities
+    /// </summary>
     public class UserRepository : IUserRepository
     {
         private readonly UserManager<User> userManager;
@@ -44,6 +44,11 @@ namespace server.Repository
         public async Task<User> GetByEmail(string email)
         {
             return await userManager.FindByEmailAsync(email);
+        }
+
+        public async Task<User> GetByUsername(string username)
+        {
+            return await userManager.FindByNameAsync(username);
         }
 
         public async Task<string> GenerateConfirmationToken(User user)

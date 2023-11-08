@@ -3,10 +3,10 @@ using server.Interfaces;
 
 namespace server.Utilites
 {
-    /**
-     * Class used for encoding and decoding tokens generated from Identitys framework.
-     * Reason for this is the tokens in their native form can't go into the url
-     */
+    /// <summary>
+    /// Class used for encoding and decoding tokens generated from Identitys framework.
+    /// Reason for this is the tokens in their native form can't go into the url
+    /// </summary>
     public class TokenEncoderUtility : ITokenEncoderUtility
     {
         public string EncodeToken(string token)
