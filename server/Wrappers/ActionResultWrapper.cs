@@ -3,11 +3,11 @@ using server.DTOs;
 
 namespace server.Wrappers
 {
-    public class ActionResultWrapper : ActionResult
+    public class ActionResultWrapper<T> : ActionResult
     {
-        private readonly StandardServiceResponseDTO _dto;
+        private readonly StandardServiceResponseDTO<T> _dto;
 
-        public ActionResultWrapper(StandardServiceResponseDTO dto)
+        public ActionResultWrapper(StandardServiceResponseDTO<T> dto)
         {
             _dto = dto;
         }

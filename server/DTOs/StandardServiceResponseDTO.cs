@@ -1,11 +1,11 @@
 ﻿namespace server.DTOs
 {
-    public class StandardServiceResponse<T>
+    public class StandardServiceResponseDTO<T>
     {
         public ResponseType ResponseType { get; set; }
         public T Data { get; set; }
 
-        public StandardServiceResponse(ResponseType type, T data)
+        public StandardServiceResponseDTO(ResponseType type, T data)
         {
             ResponseType = type;
             Data = data;

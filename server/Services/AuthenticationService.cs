@@ -1,12 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using server.DTOs;
+﻿using server.DTOs;
 using server.Models;
 using server.Interfaces;
 using AutoMapper;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 
@@ -39,13 +35,13 @@ namespace server.Services
         /// </summary>
         /// <param name="loginDTO">Contains login information.</param>
         /// <param name="modelState">Implements IValidationDictionary interface used to validate user input from Registration DTO.</param>
-        public async Task<StandardServiceResponse<AuthenticationResponseData>> Login(LoginDTO loginDTO, IValidationDictionary modelState)
+        public async Task<StandardServiceResponseDTO<ResultData>> Login(LoginDTO loginDTO, IValidationDictionary modelState)
         {
             if (!modelState.IsValid)
             {
-                return new StandardServiceResponse<AuthenticationResponseData>(
+                return new StandardServiceResponseDTO<ResultData>(
                     ResponseType.BadRequest,
-                    new AuthenticationResponseData { Message = "Invalid Input" }
+                    new ResultData { Message = "Invalid Input" }
                 );
             }
 
@@ -53,25 +49,25 @@ namespace server.Services
 
             if (user == null)
             {
-                return new StandardServiceResponse<AuthenticationResponseData>(
+                return new StandardServiceResponseDTO<ResultData>(
                     ResponseType.NotFound,
-                    new AuthenticationResponseData { Message = "User not found." }
+                    new ResultData { Message = "User not found." }
                 );
             }
 
             if (!user.EmailConfirmed)
             {
-                return new StandardServiceResponse<AuthenticationResponseData>(
+                return new StandardServiceResponseDTO<ResultData>(
                     ResponseType.Unauthorized,
-                    new AuthenticationResponseData { Message = "User is not verified." }
+                    new ResultData { Message = "User is not verified." }
                 );
             }
 
             if (!await _userRepository.CheckPassword(user, loginDTO.Password))
             {
-                return new StandardServiceResponse<AuthenticationResponseData>(
+                return new StandardServiceResponseDTO<ResultData>(
                     ResponseType.Unauthorized,
-                    new AuthenticationResponseData { Message = "Incorrect password." }
+                    new ResultData { Message = "Incorrect password." }
                 );
             }
 
@@ -90,9 +86,9 @@ namespace server.Services
                 authProperties
             );
 
-            return new StandardServiceResponse<AuthenticationResponseData>(
+            return new StandardServiceResponseDTO<ResultData>(
                 ResponseType.Success,
-                new AuthenticationResponseData { Message = "Log in successful." }
+                new ResultData { Message = "Log in successful." }
             );
         }
 
@@ -101,15 +97,15 @@ namespace server.Services
         /// </summary>
         /// <param name="userId">Id of the user to be verified.</param>
         /// <param name="token">Verification token in the database.</param>
-        public async Task<StandardServiceResponse<AuthenticationResponseData>> ConfirmUser(string userId, string token)
+        public async Task<StandardServiceResponseDTO<ResultData>> ConfirmUser(string userId, string token)
         {
             var user = await _userRepository.GetById(userId);
 
             if (user == null)
             {
-                return new StandardServiceResponse<AuthenticationResponseData>(
+                return new StandardServiceResponseDTO<ResultData>(
                     ResponseType.NotFound,
-                    new AuthenticationResponseData { Message = "User not found." }
+                    new ResultData { Message = "User not found." }
                 );
             }
 
@@ -118,18 +114,18 @@ namespace server.Services
 
             if (result.Succeeded)
             {
-                return new StandardServiceResponse<AuthenticationResponseData>(
+                return new StandardServiceResponseDTO<ResultData>(
                     ResponseType.Success,
-                    new AuthenticationResponseData { Message = "User confirmed!" }
+                    new ResultData { Message = "User confirmed!" }
                 );
             }
 
             var errorList = result.Errors.Select(e => e.Description).ToList();
             var errors = string.Join(", ", errorList);
 
-            return new StandardServiceResponse<AuthenticationResponseData>(
+            return new StandardServiceResponseDTO<ResultData>(
                 ResponseType.BadRequest,
-                new AuthenticationResponseData { Message = errors }
+                new ResultData { Message = errors }
             );
         }
 
@@ -139,13 +135,13 @@ namespace server.Services
         /// <param name="registrationDTO">DTO with registration values (user details).</param>
         /// <param name="modelState">Implements IValidationDictionary interface used to validate user input from Registration DTO.</param>
         /// <param name="requestUrl">String holding the value from the frontend URL.</param>
-        public async Task<StandardServiceResponse<AuthenticationResponseData>> Register(RegistrationDTO registrationDTO, IValidationDictionary modelState, string requestUrl)
+        public async Task<StandardServiceResponseDTO<ResultData>> Register(RegistrationDTO registrationDTO, IValidationDictionary modelState, string requestUrl)
         {
             if (!modelState.IsValid)
             {
-                return new StandardServiceResponse<AuthenticationResponseData>(
+                return new StandardServiceResponseDTO<ResultData>(
                     ResponseType.BadRequest,
-                    new AuthenticationResponseData { Message = "Invalid Input" }
+                    new ResultData { Message = "Invalid Input" }
                 );
             }
 
@@ -162,17 +158,17 @@ namespace server.Services
 
                 if (await _mailUtility.SendEmailAsync(mailData, new CancellationToken()))
                 {
-                    return new StandardServiceResponse<AuthenticationResponseData>(
+                    return new StandardServiceResponseDTO<ResultData>(
                         ResponseType.Success,
-                        new AuthenticationResponseData { Message = "Successful registration" }
+                        new ResultData { Message = "Successful registration" }
                     );
                 }
 
                 await _userRepository.Delete(user);
 
-                return new StandardServiceResponse<AuthenticationResponseData>(
+                return new StandardServiceResponseDTO<ResultData>(
                     ResponseType.InternalServerError,
-                    new AuthenticationResponseData { Message = "Registration failed, please try again later." }
+                    new ResultData { Message = "Registration failed, please try again later." }
                 );
             }
             else
@@ -180,9 +176,9 @@ namespace server.Services
                 var errorList = result.Errors.Select(e => e.Description).ToList();
                 var errors = string.Join(", ", errorList);
 
-                return new StandardServiceResponse<AuthenticationResponseData>(
+                return new StandardServiceResponseDTO<ResultData>(
                     ResponseType.Conflict,
-                    new AuthenticationResponseData { Message = errors }
+                    new ResultData { Message = errors }
                 );
             }
         }
@@ -192,15 +188,15 @@ namespace server.Services
         /// </summary>
         /// <param name="email">Email of the user for the password reset.</param>
         /// <param name="requestUrl">The domain and host of the request.</param>
-        public async Task<StandardServiceResponse<AuthenticationResponseData>> SendPasswordResetRequest(string email, string requestUrl)
+        public async Task<StandardServiceResponseDTO<ResultData>> SendPasswordResetRequest(string email, string requestUrl)
         {
             var user = await _userRepository.GetByEmail(email);
 
             if (user == null)
             {
-                return new StandardServiceResponse<AuthenticationResponseData>(
+                return new StandardServiceResponseDTO<ResultData>(
                     ResponseType.BadRequest,
-                    new AuthenticationResponseData { Message = "User not found" }
+                    new ResultData { Message = "User not found" }
                 );
             }
 
@@ -212,15 +208,15 @@ namespace server.Services
 
             if (await _mailUtility.SendEmailAsync(mailData, new CancellationToken()))
             {
-                return new StandardServiceResponse<AuthenticationResponseData>(
+                return new StandardServiceResponseDTO<ResultData>(
                     ResponseType.Success,
-                    new AuthenticationResponseData { Message = "Password reset link has been sent." }
+                    new ResultData { Message = "Password reset link has been sent." }
                 );
             }
 
-            return new StandardServiceResponse<AuthenticationResponseData>(
+            return new StandardServiceResponseDTO<ResultData>(
                 ResponseType.InternalServerError,
-                new AuthenticationResponseData { Message = "Password reset failed, please try again later." }
+                new ResultData { Message = "Password reset failed, please try again later." }
             );
         }
 
@@ -229,13 +225,13 @@ namespace server.Services
         /// </summary>
         /// <param name="passwordResetDTO">DTO holding token, user id, and new password for the reset.</param>
         /// <param name="modelState">Implements IValidationDictionary interface used to validate user input.</param>
-        public async Task<StandardServiceResponse<AuthenticationResponseData>> ResetUserPassword(ResetPasswordDTO passwordResetDTO, IValidationDictionary modelState)
+        public async Task<StandardServiceResponseDTO<ResultData>> ResetUserPassword(ResetPasswordDTO passwordResetDTO, IValidationDictionary modelState)
         {
             if (!modelState.IsValid)
             {
-                return new StandardServiceResponse<AuthenticationResponseData>(
+                return new StandardServiceResponseDTO<ResultData>(
                     ResponseType.BadRequest,
-                    new AuthenticationResponseData { Message = "Invalid Input" }
+                    new ResultData { Message = "Invalid Input" }
                 );
             }
 
@@ -243,9 +239,9 @@ namespace server.Services
 
             if (user == null)
             {
-                return new StandardServiceResponse<AuthenticationResponseData>(
+                return new StandardServiceResponseDTO<ResultData>(
                     ResponseType.NotFound,
-                    new AuthenticationResponseData { Message = "User not found." }
+                    new ResultData { Message = "User not found." }
                 );
             }
 
@@ -254,18 +250,18 @@ namespace server.Services
 
             if (result.Succeeded)
             {
-                return new StandardServiceResponse<AuthenticationResponseData>(
+                return new StandardServiceResponseDTO<ResultData>(
                     ResponseType.Success,
-                    new AuthenticationResponseData { Message = "Password successfully reset." }
+                    new ResultData { Message = "Password successfully reset." }
                 );
             }
 
             var errorList = result.Errors.Select(e => e.Description).ToList();
             var errors = string.Join(", ", errorList);
 
-            return new StandardServiceResponse<AuthenticationResponseData>(
+            return new StandardServiceResponseDTO<ResultData>(
                 ResponseType.BadRequest,
-                new AuthenticationResponseData { Message = errors }
+                new ResultData { Message = errors }
             );
         }
 
@@ -273,15 +269,15 @@ namespace server.Services
         /// Verifies if an email exists.
         /// </summary>
         /// <param name="email">Email used to check if the user exists.</param>
-        public async Task<StandardServiceResponse<AuthenticationResponseData>> VerifyEmailExists(string email)
+        public async Task<StandardServiceResponseDTO<ResultData>> VerifyEmailExists(string email)
         {
             var user = await _userRepository.GetByEmail(email);
 
             if (user == null)
             {
-                return new StandardServiceResponse<AuthenticationResponseData>(
+                return new StandardServiceResponseDTO<ResultData>(
                     ResponseType.Success,
-                    new AuthenticationResponseData
+                    new ResultData
                     {
                         Message = "Email not found.",
                         EmailFound = "false"
@@ -289,9 +285,9 @@ namespace server.Services
                 );
             }
 
-            return new StandardServiceResponse<AuthenticationResponseData>(
+            return new StandardServiceResponseDTO<ResultData>(
                 ResponseType.Success,
-                new AuthenticationResponseData
+                new ResultData
                 {
                     Message = "Email found.",
                     EmailFound = "true"
@@ -303,15 +299,15 @@ namespace server.Services
         /// Verifies if a username exists.
         /// </summary>
         /// <param name="username">Username used to check if the user exists.</param>
-        public async Task<StandardServiceResponse<AuthenticationResponseData>> VerifyUsernameExists(string username)
+        public async Task<StandardServiceResponseDTO<ResultData>> VerifyUsernameExists(string username)
         {
             var user = await _userRepository.GetByUsername(username);
 
             if (user == null)
             {
-                return new StandardServiceResponse<AuthenticationResponseData>(
+                return new StandardServiceResponseDTO<ResultData>(
                     ResponseType.Success,
-                    new AuthenticationResponseData
+                    new ResultData
                     {
                         Message = "Username not found.",
                         UsernameFound = "false"
@@ -319,9 +315,9 @@ namespace server.Services
                 );
             }
 
-            return new StandardServiceResponse<AuthenticationResponseData>(
+            return new StandardServiceResponseDTO<ResultData>(
                 ResponseType.Success,
-                new AuthenticationResponseData
+                new ResultData
                 {
                     Message = "Username found.",
                     UsernameFound = "true"
@@ -332,11 +328,11 @@ namespace server.Services
         /// <summary>
         /// Class for response data.
         /// </summary>
-        private class AuthenticationResponseData
+        public class ResultData
         {
             public string Message { get; set; }
-            public bool UsernameFound { get; set; }
-            public bool EmailFound { get; set; }
+            public string UsernameFound { get; set; }
+            public string EmailFound { get; set; }
         }
     }
 }

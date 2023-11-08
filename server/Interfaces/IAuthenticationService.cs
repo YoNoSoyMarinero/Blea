@@ -1,17 +1,18 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using server.DTOs;
 using server.Models;
+using server.Services;
 
 namespace server.Interfaces
 {
     public interface IAuthenticationService
     {
-        public Task<StandardServiceResponseDTO> Login (LoginDTO loginDTO, IValidationDictionary modelState);
-        public Task<StandardServiceResponseDTO> Register (RegistrationDTO registrationDTO, IValidationDictionary modelState, String requestUrl);
-        public Task<StandardServiceResponseDTO> ConfirmUser(string userId, string token);
-        public Task<StandardServiceResponseDTO> SendPasswordResetRequest(string email, string requestUrl);
-        public Task<StandardServiceResponseDTO> ResetUserPassword(ResetPasswordDTO passwordResetDTO, IValidationDictionary modelState);
-        public Task<StandardServiceResponseDTO> VerifyEmailExists(string email);
-        public Task<StandardServiceResponseDTO> VerifyUsernameExists(string username);
+        public Task<StandardServiceResponseDTO<AuthenticationService.ResultData>> Login (LoginDTO loginDTO, IValidationDictionary modelState);
+        public Task<StandardServiceResponseDTO<AuthenticationService.ResultData>> Register (RegistrationDTO registrationDTO, IValidationDictionary modelState, String requestUrl);
+        public Task<StandardServiceResponseDTO<AuthenticationService.ResultData>> ConfirmUser(string userId, string token);
+        public Task<StandardServiceResponseDTO<AuthenticationService.ResultData>> SendPasswordResetRequest(string email, string requestUrl);
+        public Task<StandardServiceResponseDTO<AuthenticationService.ResultData>> ResetUserPassword(ResetPasswordDTO passwordResetDTO, IValidationDictionary modelState);
+        public Task<StandardServiceResponseDTO<AuthenticationService.ResultData>> VerifyEmailExists(string email);
+        public Task<StandardServiceResponseDTO<AuthenticationService.ResultData>> VerifyUsernameExists(string username);
     }
 }
