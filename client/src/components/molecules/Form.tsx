@@ -7,7 +7,7 @@ import * as React from "react";
 import { ReactNode } from "react";
 import { ReactHookFormRegisterType } from "../../types/globalTypes";
 
-interface IFormProps extends FormHTMLAttributes<HTMLFormElement>{
+interface IFormProps extends FormHTMLAttributes<HTMLFormElement> {
   children?: ReactNode;
   buttonLabel?: string;
   onSubmit?: any;
