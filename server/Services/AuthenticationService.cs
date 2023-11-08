@@ -12,9 +12,9 @@ using Microsoft.AspNetCore.Authentication;
 
 namespace server.Services
 {
-    /**
-     * This is a class used to perform all of the needed bussines logic for performing login, registration, verification and password reseting
-     */
+    /// <summary>
+    /// This class performs business logic for login, registration, verification, and password resetting.
+    /// </summary>
     public class AuthenticationService : Interfaces.IAuthenticationService
     {
         private readonly IUserRepository _userRepository;
@@ -28,48 +28,53 @@ namespace server.Services
         {
             _userRepository = userRepository;
             _mapper = mapper;
-            _mailUtility = mailUtility; ;
+            _mailUtility = mailUtility;
             _tokenEncoderUtility = tokenEncoderUtility;
             _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
         }
 
-        /**
-         * @param loginDTO - Contains login information
-         * @param modelState - Implements IValidationDictionary interface used to validate user input from Registration DTO 
-         */
-        public async Task<StandardServiceResponseDTO> Login(LoginDTO loginDTO, IValidationDictionary modelState)
+        /// <summary>
+        /// Performs user login.
+        /// </summary>
+        /// <param name="loginDTO">Contains login information.</param>
+        /// <param name="modelState">Implements IValidationDictionary interface used to validate user input from Registration DTO.</param>
+        public async Task<StandardServiceResponse<AuthenticationResponseData>> Login(LoginDTO loginDTO, IValidationDictionary modelState)
         {
-            // Check input in LoginDTO
-            if (!modelState.IsValid) return new StandardServiceResponseDTO(
-                ResponseType.BadRequest, 
-                new Dictionary<string, string> { 
-                    { "message", "Invalid Input" } 
-                });
-           
-            // Get the corresponding user by email
+            if (!modelState.IsValid)
+            {
+                return new StandardServiceResponse<AuthenticationResponseData>(
+                    ResponseType.BadRequest,
+                    new AuthenticationResponseData { Message = "Invalid Input" }
+                );
+            }
+
             var user = await _userRepository.GetByEmail(loginDTO.Email);
 
-            // Check for the user email, then check if the user is confirmed and lastly check for their password
-            if (user == null) return new StandardServiceResponseDTO(
-                ResponseType.NotFound, 
-                new Dictionary<string, string> { 
-                    { "message", "User not found." } 
-                });
+            if (user == null)
+            {
+                return new StandardServiceResponse<AuthenticationResponseData>(
+                    ResponseType.NotFound,
+                    new AuthenticationResponseData { Message = "User not found." }
+                );
+            }
 
-            if (!user.EmailConfirmed) return new StandardServiceResponseDTO(
-                ResponseType.Unauthorized,
-                new Dictionary<string, string> { 
-                    { "message", "User is not verified." } 
-                });
+            if (!user.EmailConfirmed)
+            {
+                return new StandardServiceResponse<AuthenticationResponseData>(
+                    ResponseType.Unauthorized,
+                    new AuthenticationResponseData { Message = "User is not verified." }
+                );
+            }
 
-            if (!await _userRepository.CheckPassword(user, loginDTO.Password)) return new StandardServiceResponseDTO(
-                ResponseType.Unauthorized, 
-                new Dictionary<string, string> { 
-                    { "message", "Incorrect password." } 
-                });
+            if (!await _userRepository.CheckPassword(user, loginDTO.Password))
+            {
+                return new StandardServiceResponse<AuthenticationResponseData>(
+                    ResponseType.Unauthorized,
+                    new AuthenticationResponseData { Message = "Incorrect password." }
+                );
+            }
 
-            // Using cookie authentication to authorize logged in user
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.UserName),
@@ -77,77 +82,76 @@ namespace server.Services
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-
             var authProperties = new AuthenticationProperties();
 
             await _httpContextAccessor.HttpContext.SignInAsync(
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 new ClaimsPrincipal(claimsIdentity),
-                authProperties);
+                authProperties
+            );
 
-            return new StandardServiceResponseDTO(
-                ResponseType.Success, 
-                new Dictionary<string, object> { 
-                    { "message", "Log in successfull." }
-                });
+            return new StandardServiceResponse<AuthenticationResponseData>(
+                ResponseType.Success,
+                new AuthenticationResponseData { Message = "Log in successful." }
+            );
         }
 
-        /**
-         * @param userId - Id of the user to be verified
-         * @param code - verification token in the database
-         */
-        public async Task<StandardServiceResponseDTO> ConfirmUser(string userId, string token)
-        {   
+        /// <summary>
+        /// Confirms a user's email.
+        /// </summary>
+        /// <param name="userId">Id of the user to be verified.</param>
+        /// <param name="token">Verification token in the database.</param>
+        public async Task<StandardServiceResponse<AuthenticationResponseData>> ConfirmUser(string userId, string token)
+        {
             var user = await _userRepository.GetById(userId);
-            
-            // Check if user with this id exists
-            if (user == null) return new StandardServiceResponseDTO(
-                ResponseType.NotFound, 
-                new Dictionary<string, string> { 
-                    { "message", "User not found." } 
-                });
 
-            // Decode the token and confirm the user based on the token
+            if (user == null)
+            {
+                return new StandardServiceResponse<AuthenticationResponseData>(
+                    ResponseType.NotFound,
+                    new AuthenticationResponseData { Message = "User not found." }
+                );
+            }
+
             token = _tokenEncoderUtility.DecodeToken(token);
             var result = await _userRepository.ConfirmUser(user, token);
 
-            // Generate response based on if the user confirmation was successfull
-            if (result.Succeeded) return new StandardServiceResponseDTO(
-                ResponseType.Success, 
-                new Dictionary<string, string> { 
-                    { "message", "User confirmed!" } 
-                }); ;
+            if (result.Succeeded)
+            {
+                return new StandardServiceResponse<AuthenticationResponseData>(
+                    ResponseType.Success,
+                    new AuthenticationResponseData { Message = "User confirmed!" }
+                );
+            }
 
             var errorList = result.Errors.Select(e => e.Description).ToList();
             var errors = string.Join(", ", errorList);
 
-            return new StandardServiceResponseDTO(
+            return new StandardServiceResponse<AuthenticationResponseData>(
                 ResponseType.BadRequest,
-                new Dictionary<string, string> { 
-                    { "message", $"{errors}" } 
-                });
+                new AuthenticationResponseData { Message = errors }
+            );
         }
-        
-        /**
-         * @param registrationDTO - DTO with registration values (user details)
-         * @param modelState - Implements IValidationDictionary interface used to validate user input from Registration DTO
-         * @param requestUrl - String holding the value from the frontend url, eg. http://someFrontendUrl so we can concatenate it for verification link
-         */
-        public async Task<StandardServiceResponseDTO> Register(RegistrationDTO registrationDTO, IValidationDictionary modelState, String requestUrl)
-        {
-            // If the registration details are invalid, return 400 request with the details of invalid info
-            if (!modelState.IsValid) return new StandardServiceResponseDTO(
-                ResponseType.BadRequest, 
-                new Dictionary<string, string> { 
-                    { "message", "Invalid Input" } 
-                });
 
-            // Map DTO to the User object
+        /// <summary>
+        /// Registers a new user.
+        /// </summary>
+        /// <param name="registrationDTO">DTO with registration values (user details).</param>
+        /// <param name="modelState">Implements IValidationDictionary interface used to validate user input from Registration DTO.</param>
+        /// <param name="requestUrl">String holding the value from the frontend URL.</param>
+        public async Task<StandardServiceResponse<AuthenticationResponseData>> Register(RegistrationDTO registrationDTO, IValidationDictionary modelState, string requestUrl)
+        {
+            if (!modelState.IsValid)
+            {
+                return new StandardServiceResponse<AuthenticationResponseData>(
+                    ResponseType.BadRequest,
+                    new AuthenticationResponseData { Message = "Invalid Input" }
+                );
+            }
+
             User user = _mapper.Map<User>(registrationDTO);
-            // Add user to the database
             var result = await _userRepository.Add(user);
-            
-            // If user was inserted into the database successfully, create a verification token and send the link in the email
+
             if (result.Succeeded)
             {
                 string token = await _userRepository.GenerateConfirmationToken(user);
@@ -156,150 +160,183 @@ namespace server.Services
 
                 MailData mailData = new MailData(new List<string> { user.Email }, "Blea email verification", $"Click this link to verify your email: {url}");
 
-                if (await _mailUtility.SendEmailAsync(mailData, new CancellationToken())) return new StandardServiceResponseDTO(
-                    ResponseType.Success, 
-                    new Dictionary<string, string> { 
-                        { "message", "Successfull registration" } 
-                    });
+                if (await _mailUtility.SendEmailAsync(mailData, new CancellationToken()))
+                {
+                    return new StandardServiceResponse<AuthenticationResponseData>(
+                        ResponseType.Success,
+                        new AuthenticationResponseData { Message = "Successful registration" }
+                    );
+                }
 
-                // If the email was not sent delete the user and respond with status 500
                 await _userRepository.Delete(user);
 
-                return new StandardServiceResponseDTO(ResponseType.InternalServerError, 
-                    new Dictionary<string, string> { 
-                        { "message", "Registration failed, please try again later." } 
-                    });
-            } else
+                return new StandardServiceResponse<AuthenticationResponseData>(
+                    ResponseType.InternalServerError,
+                    new AuthenticationResponseData { Message = "Registration failed, please try again later." }
+                );
+            }
+            else
             {
                 var errorList = result.Errors.Select(e => e.Description).ToList();
                 var errors = string.Join(", ", errorList);
 
-                return new StandardServiceResponseDTO(
+                return new StandardServiceResponse<AuthenticationResponseData>(
                     ResponseType.Conflict,
-                    new Dictionary<string, string> { 
-                        { "message", $"{errors}" } 
-                    });
+                    new AuthenticationResponseData { Message = errors }
+                );
             }
         }
 
-        /**
-         * @param email - Email of the user for the password reset
-         * @param requestUrl - the domain and host of the request
-         */
-        public async Task<StandardServiceResponseDTO> SendPasswordResetRequest(string email, string requestUrl)
+        /// <summary>
+        /// Sends a password reset request to the user.
+        /// </summary>
+        /// <param name="email">Email of the user for the password reset.</param>
+        /// <param name="requestUrl">The domain and host of the request.</param>
+        public async Task<StandardServiceResponse<AuthenticationResponseData>> SendPasswordResetRequest(string email, string requestUrl)
         {
-            // Get the corresponding user by email
             var user = await _userRepository.GetByEmail(email);
 
-            if (user == null) return new StandardServiceResponseDTO(
-                ResponseType.BadRequest, 
-                new Dictionary<string, string> { 
-                    { "message", "User not found" } 
-                });
+            if (user == null)
+            {
+                return new StandardServiceResponse<AuthenticationResponseData>(
+                    ResponseType.BadRequest,
+                    new AuthenticationResponseData { Message = "User not found" }
+                );
+            }
 
-            // Generate password reset token, concatenate it into the url and send a mail to the user with it
             var token = await _userRepository.GeneratePasswordResetToken(user);
             token = _tokenEncoderUtility.EncodeToken(token);
             string url = $"{requestUrl}/User/password-reset/{user.Id}/{token}";
 
             MailData mailData = new MailData(new List<string> { email }, "Blea password reset", $"Click on this link to reset your password: {url}");
 
-            if (await _mailUtility.SendEmailAsync(mailData, new CancellationToken())) return new StandardServiceResponseDTO(
-                ResponseType.Success,
-                new Dictionary<string, string> { 
-                    { "message", "Password reset link has been sent." } 
-                });
+            if (await _mailUtility.SendEmailAsync(mailData, new CancellationToken()))
+            {
+                return new StandardServiceResponse<AuthenticationResponseData>(
+                    ResponseType.Success,
+                    new AuthenticationResponseData { Message = "Password reset link has been sent." }
+                );
+            }
 
-            // If email fails to be sent, respond with statu 500
-            return new StandardServiceResponseDTO(
+            return new StandardServiceResponse<AuthenticationResponseData>(
                 ResponseType.InternalServerError,
-                new Dictionary<string, string> { 
-                    { "message", "Password reset failed, please try again later." } 
-                });
+                new AuthenticationResponseData { Message = "Password reset failed, please try again later." }
+            );
         }
 
-        /**
-         * @param ResetPasswordDTO  - dto holding token user id and new password for the eset
-         */
-        public async Task<StandardServiceResponseDTO> ResetUserPassword(ResetPasswordDTO passwordResetDTO, IValidationDictionary modelState)
+        /// <summary>
+        /// Resets a user's password.
+        /// </summary>
+        /// <param name="passwordResetDTO">DTO holding token, user id, and new password for the reset.</param>
+        /// <param name="modelState">Implements IValidationDictionary interface used to validate user input.</param>
+        public async Task<StandardServiceResponse<AuthenticationResponseData>> ResetUserPassword(ResetPasswordDTO passwordResetDTO, IValidationDictionary modelState)
         {
-            // If the registration details are invalid, return 400 request with the details of invalid info
-            if (!modelState.IsValid) return new StandardServiceResponseDTO(
-                ResponseType.BadRequest,
-                new Dictionary<string, string> { 
-                    { "message", "Invalid Input." } 
-                });
+            if (!modelState.IsValid)
+            {
+                return new StandardServiceResponse<AuthenticationResponseData>(
+                    ResponseType.BadRequest,
+                    new AuthenticationResponseData { Message = "Invalid Input" }
+                );
+            }
 
             var user = await _userRepository.GetById(passwordResetDTO.UserId);
 
-            // check if the user exists
-            if (user == null) return new StandardServiceResponseDTO(ResponseType.NotFound,
-                new Dictionary<string, string> {
-                    { "message", "User not found." }
-                });
+            if (user == null)
+            {
+                return new StandardServiceResponse<AuthenticationResponseData>(
+                    ResponseType.NotFound,
+                    new AuthenticationResponseData { Message = "User not found." }
+                );
+            }
 
-            // decode the token from the request
             var token = _tokenEncoderUtility.DecodeToken(passwordResetDTO.Token);
-            // reset the user password
             var result = await _userRepository.ResetUserPassword(user, token, passwordResetDTO.Password);
 
-            // if the reset was successfull respond with status 200
-            if (result.Succeeded) return new StandardServiceResponseDTO(ResponseType.Success,
-                new Dictionary<string, string> { 
-                    { "message", "Password successfully reset." }
-                });
+            if (result.Succeeded)
+            {
+                return new StandardServiceResponse<AuthenticationResponseData>(
+                    ResponseType.Success,
+                    new AuthenticationResponseData { Message = "Password successfully reset." }
+                );
+            }
 
-            // If the password was not successfull respond with appropriate details
             var errorList = result.Errors.Select(e => e.Description).ToList();
             var errors = string.Join(", ", errorList);
 
-            return new StandardServiceResponseDTO(ResponseType.BadRequest,
-                new Dictionary<string, string> {
-                    { "message", $"{errors}" }
-                });
+            return new StandardServiceResponse<AuthenticationResponseData>(
+                ResponseType.BadRequest,
+                new AuthenticationResponseData { Message = errors }
+            );
         }
-        /**
-         * @param email - email used to check if user exists
-         */
-        public async Task<StandardServiceResponseDTO> VerifyEmailExists(string email)
+
+        /// <summary>
+        /// Verifies if an email exists.
+        /// </summary>
+        /// <param name="email">Email used to check if the user exists.</param>
+        public async Task<StandardServiceResponse<AuthenticationResponseData>> VerifyEmailExists(string email)
         {
             var user = await _userRepository.GetByEmail(email);
- 
-            if (user == null) return new StandardServiceResponseDTO(
-                ResponseType.Success, 
-                new Dictionary<string, string> { 
-                    { "message", "Email not found." }, 
-                    { "emailFound", "false" } 
-                });
 
-            return new StandardServiceResponseDTO(
-                ResponseType.Success, 
-                new Dictionary<string, string> { 
-                    { "message", "Email found." },
-                    { "emailFound", "true" } 
-                });
+            if (user == null)
+            {
+                return new StandardServiceResponse<AuthenticationResponseData>(
+                    ResponseType.Success,
+                    new AuthenticationResponseData
+                    {
+                        Message = "Email not found.",
+                        EmailFound = "false"
+                    }
+                );
+            }
+
+            return new StandardServiceResponse<AuthenticationResponseData>(
+                ResponseType.Success,
+                new AuthenticationResponseData
+                {
+                    Message = "Email found.",
+                    EmailFound = "true"
+                }
+            );
         }
 
-        /**
-         * @param userName  - username used to check if user exists
-         */
-        public async Task<StandardServiceResponseDTO> VerifyUsernameExists(string username)
+        /// <summary>
+        /// Verifies if a username exists.
+        /// </summary>
+        /// <param name="username">Username used to check if the user exists.</param>
+        public async Task<StandardServiceResponse<AuthenticationResponseData>> VerifyUsernameExists(string username)
         {
             var user = await _userRepository.GetByUsername(username);
 
-            if (user == null) return new StandardServiceResponseDTO(
-                ResponseType.Success,
-                new Dictionary<string, string> {
-                    { "message", "Username not found." },
-                    { "usernameFound", "false" }
-                });
+            if (user == null)
+            {
+                return new StandardServiceResponse<AuthenticationResponseData>(
+                    ResponseType.Success,
+                    new AuthenticationResponseData
+                    {
+                        Message = "Username not found.",
+                        UsernameFound = "false"
+                    }
+                );
+            }
 
-            return new StandardServiceResponseDTO(
+            return new StandardServiceResponse<AuthenticationResponseData>(
                 ResponseType.Success,
-                new Dictionary<string, string> {
-                    { "message", "Username found." },
-                    { "usernameFound", "true" }
-                });
+                new AuthenticationResponseData
+                {
+                    Message = "Username found.",
+                    UsernameFound = "true"
+                }
+            );
+        }
+
+        /// <summary>
+        /// Class for response data.
+        /// </summary>
+        private class AuthenticationResponseData
+        {
+            public string Message { get; set; }
+            public bool UsernameFound { get; set; }
+            public bool EmailFound { get; set; }
         }
     }
 }

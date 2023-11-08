@@ -1,18 +1,16 @@
-﻿using server;
-
-namespace server.DTOs
+﻿namespace server.DTOs
 {
-    public class StandardServiceResponseDTO
+    public class StandardServiceResponse<T>
     {
         public ResponseType ResponseType { get; set; }
-        public object Data { get; set; }
+        public T Data { get; set; }
 
-        public StandardServiceResponseDTO (ResponseType type, object data) 
+        public StandardServiceResponse(ResponseType type, T data)
         {
             ResponseType = type;
-            Data = data; 
+            Data = data;
         }
     }
- 
+
     public enum ResponseType { Success, BadRequest, NotFound, Unauthorized, InternalServerError, Conflict }
 }

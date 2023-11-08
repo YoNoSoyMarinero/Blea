@@ -7,9 +7,9 @@ using server.DTOs;
 
 namespace server.Utilites
 {
-    /**
-     * This class has been copied from here https://blog.christian-schou.dk/send-emails-with-asp-net-core-with-mailkit/
-     */
+    /// <summary>
+    /// This class has been copied from here https://blog.christian-schou.dk/send-emails-with-asp-net-core-with-mailkit/
+    /// </summary>
     public class MailUtility : IMailUtility
     {
         private readonly MailSettings _settings;
