@@ -1,9 +1,12 @@
+/**
+ * Component implements form and input components to create form for user rgistration and utilizes react-hook-form
+ */
 import * as React from "react";
 import Form from "../../molecules/Form";
 import Input from '../../atoms/Input';
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { LoginFormFields } from "../../../types/globalTypes";
+import { AxiosResponseResult, LoginFormFields, SendRequestResult } from "../../../types/globalTypes";
 import { useForm } from "react-hook-form";
 import { loginUser } from "../../../api/userApi";
 import { useState } from "react";
@@ -23,7 +26,8 @@ const LoginForm = () => {
   } = useForm({ resolver: yupResolver(userLoginSchema) });
 
   const onSubmit = async (userData: LoginFormFields): Promise<void> => {
-    const response = await loginUser(userData);
+    const { sendRequest, cancelRequest }: AxiosResponseResult = loginUser(userData);
+    const response: SendRequestResult = await sendRequest();
 
     if (response.error && response.error.response) {
         const status = response.error.response.status;

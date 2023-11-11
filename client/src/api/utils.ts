@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { AxiosResponseResult } from '../types/globalTypes';
+import { AxiosResponseResult, SendRequestResult } from '../types/globalTypes';
 
 const DEFAULT_FETCH_OPTIONS: AxiosRequestConfig = {
     headers: {
@@ -15,25 +15,38 @@ type RequestProps = {
     fetchOptions?: AxiosRequestConfig;
 };
 
-export const AxiosRequest = async ({
+export const AxiosRequest =  ({
     url,
     method,
     input,
     fetchOptions
-}: RequestProps): Promise<AxiosResponseResult> => {
+}: RequestProps): AxiosResponseResult => {
     let data: any = null;
     let error: AxiosError | null = null;
+    let abortController = new AbortController();
 
-    try {
-        const response: AxiosResponse = await axios[method](url, input, {
-            ...fetchOptions,
-            ...DEFAULT_FETCH_OPTIONS,
-        });
+    const sendRequest = async (): Promise<SendRequestResult> => {
+        try {
+            const response: AxiosResponse = await axios[method](url, input, {
+                ...fetchOptions,
+                ...DEFAULT_FETCH_OPTIONS,
+                signal: abortController.signal
+            });
+    
+            data = response.data;
+        } catch (err) {
+            if (axios.isCancel(err)) {
+                console.log('canceled');
+            }
+            error = err;
+        }
 
-        data = response.data;
-    } catch (err) {
-        error = err;
+        return { data, error };
+    }
+    
+    const cancelRequest = () => {
+        abortController.abort();
     }
 
-    return { data, error };
+    return { sendRequest, cancelRequest};
 }

@@ -280,7 +280,7 @@ namespace server.Services
                     new ResultData
                     {
                         Message = "Email not found.",
-                        EmailFound = "false"
+                        EmailFound = false
                     }
                 );
             }
@@ -290,7 +290,7 @@ namespace server.Services
                 new ResultData
                 {
                     Message = "Email found.",
-                    EmailFound = "true"
+                    EmailFound = true
                 }
             );
         }
@@ -310,7 +310,7 @@ namespace server.Services
                     new ResultData
                     {
                         Message = "Username not found.",
-                        UsernameFound = "false"
+                        UsernameFound = false
                     }
                 );
             }
@@ -320,7 +320,7 @@ namespace server.Services
                 new ResultData
                 {
                     Message = "Username found.",
-                    UsernameFound = "true"
+                    UsernameFound = true
                 }
             );
         }
@@ -331,8 +331,8 @@ namespace server.Services
         public class ResultData
         {
             public string Message { get; set; }
-            public string UsernameFound { get; set; }
-            public string EmailFound { get; set; }
+            public bool UsernameFound { get; set; }
+            public bool EmailFound { get; set; }
         }
     }
 }

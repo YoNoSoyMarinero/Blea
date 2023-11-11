@@ -1,23 +1,27 @@
 import * as yup from "yup";
 import { verifyEmailExists, verifyUsernameExists } from "../../../api/userApi";
+import { AxiosResponseResult, SendRequestResult } from "../../../types/globalTypes";
+import { debounce } from "../../../utils/debounce";
 
 const nameRegex = /^[A-Za-z]+$/;
 const phoneRegex = /^(\+?\d{0,4})?\s?-?\s?(\(?\d{3}\)?)\s?-?\s?(\(?\d{3}\)?)\s?-?\s?(\(?\d{4}\)?)?$/;
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]+$/;
 
-const verifyEmailYup = async (email: string) => {
+const verifyEmailYup = debounce(async (email: string): Promise<boolean> => {
   if (!email) return true;
-  const response = await verifyEmailExists(email);
+  const { sendRequest, cancelRequest }: AxiosResponseResult = verifyEmailExists(email);
+  const response: SendRequestResult = await sendRequest();
   if (response.error) return true;
-  return response.data?.emailFound === "false";
-}
+  return !response.data?.emailFound;
+}, 500);
 
-const verifyUsernameYup = async (userName: string) => {
+const verifyUsernameYup = debounce(async (userName: string): Promise<boolean> => {
   if (!userName) return true;
-  const response = await verifyUsernameExists(userName);
+  const { sendRequest, cancelRequest }: AxiosResponseResult = verifyUsernameExists(userName);
+  const response: SendRequestResult = await sendRequest();
   if (response.error) return true;
-  return response.data?.usernameFound === "false";
-}
+  return !response.data?.usernameFound;
+}, 500);
 
 export const UserRegisterSchema = yup.object().shape({
   firstName: yup
@@ -39,15 +43,17 @@ export const UserRegisterSchema = yup.object().shape({
     .required("This field is required")
     .max(15)
     .min(6, "Username must be atleast 6 characters long")
-    .test("username-exists", "Username already exists",  (value) => {
+    .test("username-exists", "Username already exists",  async (value) => {
       return verifyUsernameYup(value);
     }),
   email: yup
     .string()
     .email("Please type in a valid email")
     .required("This field is required")
-    .test("email-exists", "Email already exists", (value) => {
-      return verifyEmailYup(value);
+    .test("email-exists", "Email already exists", async (value) => {
+      const found = await verifyEmailYup(value);
+      console.log(found, 'ovde');
+      return found;
     }),
   dateOfBirth: yup
     .date()

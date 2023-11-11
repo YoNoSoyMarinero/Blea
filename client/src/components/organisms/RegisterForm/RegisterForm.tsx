@@ -1,10 +1,13 @@
+/**
+ * Component implements form and input components to create form for user rgistration and utilizes react-hook-form
+ */
 import * as React from "react";
 import Form from "../../molecules/Form";
 import Input from '../../atoms/Input';
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { registerUser } from "../../../api/userApi";
-import { RegistrationFormFields } from "../../../types/globalTypes";
+import { AxiosResponseResult, RegistrationFormFields, SendRequestResult } from "../../../types/globalTypes";
 import { UserRegisterSchema } from "./helper";
 import { useState } from "react";
 
@@ -18,8 +21,9 @@ const RegisterForm = () => {
   } = useForm({ resolver: yupResolver(UserRegisterSchema) });
 
   const onSubmit = async (userData: RegistrationFormFields): Promise<void> => {
-    const response = await registerUser(userData);
-
+    const { sendRequest, cancelRequest }: AxiosResponseResult = registerUser(userData);
+    const response: SendRequestResult = await sendRequest();
+  
     if (response.error) {
       setFormError('Something went wrong, please try again later');
       return;

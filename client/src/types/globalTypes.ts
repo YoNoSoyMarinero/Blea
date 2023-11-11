@@ -1,3 +1,6 @@
+/**
+ * This file keeps all the types in the code that are used more than once
+ */
 import { UseFormRegister, FieldValues } from "react-hook-form";
 import { AxiosError } from "axios";
 
@@ -20,6 +23,11 @@ export type LoginFormFields = {
 }
 
 export type AxiosResponseResult = {
+    sendRequest: () => Promise<SendRequestResult>,
+    cancelRequest: () => void
+};
+
+export type SendRequestResult = {
     data: any;
     error: AxiosError | null;
-};
+}
